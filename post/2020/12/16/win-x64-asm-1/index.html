@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>Win X64 Asm 1 | Home</title>
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/style.css" />
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/fonts.css" />
+    <link rel="stylesheet" href="ninerdelta.github.io/css/theme-override.css">
+    <header>
+
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="ninerdelta.github.io/index.xml">~/rss</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Win X64 Asm 1</span></h1>
+
+<h2 class="date">2020/12/16</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/ninerdelta.github.io/categories/journal">Journal</a> <a href="/ninerdelta.github.io/categories/dev-journal">Dev Journal</a> 
+  
+  
+  
+  Tags: <a href="/ninerdelta.github.io/tags/assembly">assembly</a> <a href="/ninerdelta.github.io/tags/x64">x64</a> <a href="/ninerdelta.github.io/tags/windows">Windows</a> 
+  
+  
+</p>
+</div>
+
+
+<div class="content-wrapper">
+  <main>
+    <h1 id="intro">Intro</h1>
+<p>I&rsquo;m working through the book &ldquo;Windows 64-bit Assembly Language Programming&rdquo; and taking some notes.</p>
+<p>My first notes are about environment setup, and working on Chapter 3 &ldquo;Hello World&rdquo;.</p>
+<p>A few tutorials I&rsquo;ve seen use assemblers like FASM or NASM, but the book uses <a href="https://docs.microsoft.com/en-us/cpp/assembler/masm/masm-for-x64-ml64-exe?view=msvc-160">ML64</a> so that is what I used as well.</p>
+<h1 id="setup">Setup</h1>
+<p>To get setup with ML64 the book recommended searching for ml64.exe and adding it to the path. I didn&rsquo;t quite want to do it this way so went searching for more info. What I found was that, similarly to compiling C++ from command line, all I need to do was run vcvarsall.bat x64 (<a href="https://docs.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=msvc-160">vcvar is Windows C++ toolset</a>).</p>
+<p>I can never remember the path to vsvarsall.bat, so I decided to make a .bat file to help.</p>
+<p>I placed the following in a &ldquo;dev_env.bat&rdquo; placed it in the bin directory of my <a href="https://cmder.net/">Cmder</a> install. The same thing could be achieved by putting the .bat file anywhere really. Placing it in the Cmder/bin directory just makes calling said script a bit easier.</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bat" data-lang="bat"><span style="color:#111">@</span><span style="color:#00a8c8">echo</span> off
+<span style="color:#00a8c8">set</span> <span style="color:#111">plat</span><span style="color:#111">=</span><span style="color:#111">%1</span>
+<span style="color:#111">:</span><span style="color:#75715e">: defaults to x64, but can pass in x86 instead</span>
+<span style="color:#00a8c8">if</span> <span style="color:#d88200">&#34;</span><span style="color:#111">%plat%</span><span style="color:#d88200">&#34;</span> <span style="color:#f92672">==</span> <span style="color:#d88200">&#34;&#34;</span> <span style="color:#111">(</span>
+    <span style="color:#00a8c8">SET</span> <span style="color:#111">plat</span><span style="color:#111">=</span>x64
+<span style="color:#111">)</span>
+<span style="color:#d88200">&#34;&lt;Your Drive&gt;:\&lt;your&gt;\&lt;path&gt;\&lt;to&gt;\vcvarsall.bat&#34;</span> <span style="color:#111">%plat%</span>
+</code></pre></div><p>And because curiosity killed the cat, I had to find out what the difference between <a href="https://stackoverflow.com/questions/148968/windows-batch-files-bat-vs-cmd">.bat and .cmd is</a>.</p>
+<h1 id="compiling">Compiling</h1>
+<p>After setting up that script, I wrote up the console input echo program from chapter 3, &ldquo;Hello World&rdquo;.</p>
+<p>The command line to compile that the book gives is,</p>
+<pre><code>ml64 &lt;yourfilename&gt;.asm /link /SUBSYSTEM:CONSOLE /ENTRY:main
+</code></pre><p>I <em>kinda</em> knew what the commands do but decided to <a href="https://docs.microsoft.com/en-us/cpp/assembler/masm/ml-and-ml64-command-line-reference?view=msvc-160">go and read the docs</a>.</p>
+<p><code>/link</code> passes &ldquo;the remainder of the command line to <code>LINK</code>&rdquo;. That is, anything after <code>/link</code> gets passed as options to the linker.</p>
+<p><code>SUBSYSTEM: &lt;arg&gt;</code> specifies the subsystem&hellip;which there are several of.
+According to the documentation, if <code>main</code> is defined for native code (asm and C++ are native as opposed to &ldquo;managed&rdquo; C#), then the default subsystem is <code>CONSOLE</code> so probably, this could have been ommited from the command line. To put that to the test I tried it and&hellip;it worked so that is cool.</p>
+<p>Another subsytem that could be passed is <code>WINDOWS</code> although that means you are planning to provide your own window (just rephrasing the docs here).</p>
+<p><code>/ENTRY: &lt;function&gt;</code> sets the starting address for the .exe (or .dll). So <code>/ENTRY:main</code> sets the starting point of the .exe to the address of the function <code>main</code> which was defined in the sample code.</p>
+<p>So the final command line that would work for compiling is (provided you followed the example and defined the function named <code>main</code>).</p>
+<pre><code>ml64 &lt;yourfilename&gt;.asm /link /ENTRY:main
+</code></pre><p>I tried ommiting <code>/link</code> just for kicks but obviously that didn&rsquo;t work. <code>/ENTRY</code> is a linker command, and without the <code>/link</code> part, nothing in the command line is passed to the linker.</p>
+<p>One thing I noticed later, this command line will not create a .pdb so debugging will not work. Just adding <code>-Zi</code> flag solves this.</p>
+<h1 id="coding-highlights">Coding Highlights</h1>
+<p>The major highlight while coding up the hello world sample of chapter3 was learning about the Windows 64 bit calling convention. The convention is (as defined in the book)</p>
+<blockquote>
+<ul>
+<li>First 4 arguments are passed in RCX, RDX, R8, R9. Additional arguments
+are pushed onto the stack</li>
+<li>Calling program assumes RAX, RCX, R8-R11 are volatile,
+(original contents are not preserved) while RBX, RSI, RDI, RBP, RSP,
+and R12-R15 are non-volative (original contents are preserved)</li>
+<li>The called procedure assumes that the stack has room to store four
+64-bit registers and that the address contained in RSP (stack pointer) is
+16 byte aligned. A CALL puts an 8 byte return address on the stack,
+so to maintain stack pointer alignment,
+40 bytes of &ldquo;shadow space&rdquo; is reserved on the stack.</li>
+</ul>
+</blockquote>
+<p>NOTE: the way the book talks about &ldquo;shadow space&rdquo; is different from how it is described in other sources. <a href="https://software.intel.com/content/www/us/en/develop/articles/introduction-to-x64-assembly.html#:~:text=Since%20the%2064%2Dbit%20registers,stored%20in%20lower%20memory%20addresses">Here</a> it describes the space as a place to store RCX, RDX, R8 and R9 if needed. Also, the part about the first 4 arguments is not strictly accurate as well. It omits how the XMMO registers may be used as well for floating point values. But nonetheless, any arguments in addition to the first 4 are going to be on the stack.</p>
+<h2 id="byte-alignment">Byte Alignment</h2>
+<p>I was curious about the 16 byte alignment requirement and went looking for an explanation. <a href="https://docs.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-160">Docs from Microsoft</a> say it is to &ldquo;aid performance&rdquo; and &ldquo;xmm registers are commonly 16 byte aligned&rdquo;. This <a href="https://www.agner.org/optimize/calling_conventions.pdf">doc by Agner Fog</a> has additional calling convention info as well.</p>
+<p>The xmm registers are 128 bits (16 bytes) so that makes some sense that the stack would be aligned to size of the larger registers.</p>
+<p>Alignment is an interesting topic that gets some coverage in <a href="https://nostarch.com/writegreatcode1_2e">Writing Great Code: Vol 1</a>. The super duper paraphrased high level is that, there are some rules about how the CPU reads from memory, and said rules result in a &ldquo;natural alignment&rdquo; for data types that allow the CPU to read the data in the least number of cycles (ideally, one cycle). Normally as you&rsquo;re coding you don&rsquo;t even notice these things because the rules are handled at a much lower level. My first encounter with it in C++ was learning about padding, where based on how you arrange a struct, it may be larger than you think becuase padding bytes are slipped in by the compiler.</p>
+<h2 id="coding">Coding</h2>
+<p>The coding part was pretty simple but and there were several things I was curious about so went looking for additional information.</p>
+<p>The first thing was this line,</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#75af00">Console</span> <span style="color:#00a8c8">equ</span> <span style="color:#111">-</span><span style="color:#ae81ff">11</span>
+</code></pre></div><p>In the docs, it says <code>EQU</code> is has the form <code>_name_ EQU _expression_</code>. It means it assigns a numeric value <code>expression</code> to <code>name</code>. But what is -11? That was my real question. I found the answer in the documentation for <a href="https://docs.microsoft.com/en-us/windows/console/getstdhandle">GetStdHandle</a>, -11 specifies <code>STD_OUTPUT_HANDLE</code>. What is &ldquo;standard&rdquo; depends on the subsystem specified when compiling. Since we are using the console subsystem, this means standard out is our console window. Not that exciting, but I was satisfied to have found documentation that explained in more detail what -11 was.</p>
+<p>The second curious thing was using the instruction <code>LEA</code> which is <code>Load Effective Address</code>.  For example, the Hello World code has</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#75af00">lea</span> <span style="color:#00a8c8">RDX</span><span style="color:#111">,</span> <span style="color:#00a8c8">pmsg</span>
+</code></pre></div><p>LEA explained in the <a href="https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-instruction-set-reference-manual-325383.pdf">docs</a> says</p>
+<blockquote>
+<p>Computes the effective addres of the second operand (source) and stores it in the first operand (destination).  The sources operand is a memory address (offset part) specified with one of the processors addressing modes;&hellip;.</p>
+</blockquote>
+<p>Again from <a href="https://nostarch.com/writegreatcode1_2e">Writing Greate Code</a> I remember that there are several addressing modes: direct, indirect, and indexed to name a few. Just from the code in the demo I was not sure what addressing mode is being used, and still am not 100%. But when I looked at the disassebly, what I found was</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#75af00">lea</span> <span style="color:#00a8c8">rdx</span><span style="color:#111">,</span> <span style="color:#111">[</span><span style="color:#00a8c8">pmsg</span> <span style="color:#111">(</span><span style="color:#ae81ff">07</span><span style="color:#00a8c8">FF754B84000h</span><span style="color:#111">)]</span>
+</code></pre></div><p>Which to me, the brackets indicates the indirect addressing is being used. I also just tried coding up with brackets directly, and the end result as well as disassembly were identical to without brackets.</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#75af00">lea</span> <span style="color:#00a8c8">rdx</span><span style="color:#111">,</span> <span style="color:#111">[</span><span style="color:#00a8c8">pmsg</span><span style="color:#111">]</span>
+</code></pre></div><p>But the main thing with the LEA instruction is that it puts an <em>address</em> into the destination, not a value. So it is a pointer.</p>
+<h2 id="compare-with-disassembled-c">Compare with disassembled C</h2>
+<p>I wanted to see what the assembly would look like if I coded up the same functionality in C.</p>
+<p>Here is my translation of the asm demo into C.</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;windows.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">char</span> <span style="color:#f92672">*</span><span style="color:#111">pmsg</span> <span style="color:#f92672">=</span> <span style="color:#d88200">&#34;Please Enter a message: &#34;</span><span style="color:#111">;</span>
+<span style="color:#00a8c8">char</span> <span style="color:#111">inputMsg</span><span style="color:#111">[</span><span style="color:#ae81ff">20</span><span style="color:#111">];</span>
+<span style="color:#111">DWORD</span> <span style="color:#111">numRead</span><span style="color:#111">;</span>
+<span style="color:#111">HANDLE</span> <span style="color:#111">output</span><span style="color:#111">;</span>
+<span style="color:#111">HANDLE</span> <span style="color:#111">input</span><span style="color:#111">;</span>
+
+<span style="color:#00a8c8">int</span> <span style="color:#75af00">main</span><span style="color:#111">()</span>
+<span style="color:#111">{</span>
+    <span style="color:#111">output</span> <span style="color:#f92672">=</span> <span style="color:#111">GetStdHandle</span><span style="color:#111">(</span><span style="color:#f92672">-</span><span style="color:#ae81ff">11</span><span style="color:#111">);</span>
+    <span style="color:#111">input</span> <span style="color:#f92672">=</span> <span style="color:#111">GetStdHandle</span><span style="color:#111">(</span><span style="color:#f92672">-</span><span style="color:#ae81ff">10</span><span style="color:#111">);</span>
+
+    <span style="color:#111">WriteConsole</span><span style="color:#111">(</span><span style="color:#111">output</span><span style="color:#111">,</span> <span style="color:#111">pmsg</span><span style="color:#111">,</span> <span style="color:#ae81ff">25</span><span style="color:#111">,</span> <span style="color:#111">NULL</span><span style="color:#111">,</span> <span style="color:#111">NULL</span><span style="color:#111">);</span>
+    <span style="color:#111">ReadConsole</span><span style="color:#111">(</span><span style="color:#111">input</span><span style="color:#111">,</span> <span style="color:#f92672">&amp;</span><span style="color:#111">inputMsg</span><span style="color:#111">,</span> <span style="color:#00a8c8">sizeof</span><span style="color:#111">(</span><span style="color:#111">inputMsg</span><span style="color:#111">)</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span><span style="color:#111">,</span> <span style="color:#f92672">&amp;</span><span style="color:#111">numRead</span><span style="color:#111">,</span> <span style="color:#111">NULL</span><span style="color:#111">);</span>
+    <span style="color:#111">WriteConsole</span><span style="color:#111">(</span><span style="color:#111">output</span><span style="color:#111">,</span> <span style="color:#111">inputMsg</span><span style="color:#111">,</span> <span style="color:#00a8c8">sizeof</span><span style="color:#111">(</span><span style="color:#111">inputMsg</span><span style="color:#111">),</span> <span style="color:#111">NULL</span><span style="color:#111">,</span> <span style="color:#111">NULL</span><span style="color:#111">);</span>
+    <span style="color:#00a8c8">return</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+</code></pre></div><p>In Visual Studio you can place a breakpoint, run, then select <code>Debug -&gt; Window -&gt; Disassembly</code> to see the assembly code, but I wanted to know how to do it from the command line.</p>
+<p>At first  I found <code>dumpbin</code> with an option of <code>/disasm</code>, but that generated a tremendous amount of output and didn&rsquo;t seem to be what I was looking for.</p>
+<p>Finally, I found the <a href="https://docs.microsoft.com/en-us/cpp/build/reference/fa-fa-listing-file?view=msvc-160">msvc compiler flag</a> <code>FA</code>. Be careful with this one though, I used the following command line</p>
+<pre><code>cl -Zi -FA hello_world.c
+</code></pre><p>and it generated hello_world.asm&hellip;overwriting my already existing hello_world.asm that I had written while following along the book!</p>
+<p>The <code>FA</code> option &ldquo;&hellip;generates an assembler listing file for each translation unit in the compilation&hellip;&rdquo;. Adding in an extra option <code>s</code> adds the source alongside the assembly (in the output file, you see your source followed by assembly). So my final command line was,</p>
+<pre><code>cl -Zi FAs hello_world.c
+</code></pre><p>Which writes out the following in <code>hello_world.asm</code>,</p>
+<div class="highlight"><pre style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#75af00">PUBLIC</span> <span style="color:#00a8c8">pmsg</span>
+<span style="color:#75af00">_DATA</span> <span style="color:#00a8c8">SEGMENT</span>
+<span style="color:#75af00">COMM</span> <span style="color:#00a8c8">inputMsg</span><span style="color:#111">:</span><span style="color:#00a8c8">BYTE</span><span style="color:#111">:</span><span style="color:#ae81ff">014</span><span style="color:#00a8c8">H</span>
+<span style="color:#75af00">COMM</span> <span style="color:#00a8c8">numRead</span><span style="color:#111">:</span><span style="color:#00a8c8">DWORD</span>
+<span style="color:#75af00">COMM</span> <span style="color:#00a8c8">output</span><span style="color:#111">:</span><span style="color:#00a8c8">QWORD</span>
+<span style="color:#75af00">COMM</span> <span style="color:#00a8c8">input</span><span style="color:#111">:</span><span style="color:#00a8c8">QWORD</span>
+<span style="color:#75af00">_DATA</span> <span style="color:#00a8c8">ENDS</span>
+<span style="color:#75af00">_DATA</span> <span style="color:#00a8c8">SEGMENT</span>
+<span style="color:#75af00">pmsg</span> <span style="color:#00a8c8">DQ</span> <span style="color:#00a8c8">FLAT</span><span style="color:#111">:</span><span style="color:#00a8c8">$SG95356</span>
+<span style="color:#75af00">$SG95356</span> <span style="color:#00a8c8">DB</span> <span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#00a8c8">Please</span> <span style="color:#00a8c8">Enter</span> <span style="color:#00a8c8">a</span> <span style="color:#00a8c8">message</span><span style="color:#111">:</span> <span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#111">,</span> <span style="color:#ae81ff">00</span><span style="color:#00a8c8">H</span>
+<span style="color:#75af00">_DATA</span> <span style="color:#00a8c8">ENDS</span>
+<span style="color:#75af00">PUBLIC</span> <span style="color:#00a8c8">main</span>
+<span style="color:#75af00">EXTRN</span> <span style="color:#00a8c8">__imp_GetStdHandle</span><span style="color:#111">:</span><span style="color:#00a8c8">PROC</span>
+<span style="color:#75af00">EXTRN</span> <span style="color:#00a8c8">__imp_ReadConsoleA</span><span style="color:#111">:</span><span style="color:#00a8c8">PROC</span>
+<span style="color:#75af00">EXTRN</span> <span style="color:#00a8c8">__imp_WriteConsoleA</span><span style="color:#111">:</span><span style="color:#00a8c8">PROC</span>
+<span style="color:#75af00">pdata</span> <span style="color:#00a8c8">SEGMENT</span>
+<span style="color:#75af00">$pdata$main</span> <span style="color:#00a8c8">DD</span> <span style="color:#00a8c8">imagerel</span> <span style="color:#00a8c8">$LN3</span>
+    <span style="color:#75af00">DD</span> <span style="color:#00a8c8">imagerel</span> <span style="color:#00a8c8">$LN3</span><span style="color:#960050;background-color:#1e0010">+</span><span style="color:#ae81ff">165</span>
+    <span style="color:#75af00">DD</span> <span style="color:#00a8c8">imagerel</span> <span style="color:#00a8c8">$unwind$main</span>
+<span style="color:#75af00">pdata</span> <span style="color:#00a8c8">ENDS</span>
+<span style="color:#75af00">xdata</span> <span style="color:#00a8c8">SEGMENT</span>
+<span style="color:#75af00">$unwind$main</span> <span style="color:#00a8c8">DD</span> <span style="color:#ae81ff">010401</span><span style="color:#00a8c8">H</span>
+    <span style="color:#75af00">DD</span> <span style="color:#ae81ff">06204</span><span style="color:#00a8c8">H</span>
+<span style="color:#75af00">xdata</span> <span style="color:#00a8c8">ENDS</span>
+<span style="color:#75715e">; Function compile flags: /Odtp
+</span><span style="color:#75715e">; File C:\Users\matt\Documents\SynologyDrive\asm\hello_world.c
+</span><span style="color:#75715e"></span><span style="color:#75af00">_TEXT</span> <span style="color:#00a8c8">SEGMENT</span>
+<span style="color:#75af00">main</span> <span style="color:#00a8c8">PROC</span>
+
+<span style="color:#75715e">; 10   : {
+</span><span style="color:#75715e"></span><span style="color:#111">$LN3:</span>
+    <span style="color:#75af00">sub</span> <span style="color:#00a8c8">rsp</span><span style="color:#111">,</span> <span style="color:#ae81ff">56</span>     <span style="color:#75715e">; 00000038H
+</span><span style="color:#75715e">; 11   :     output = GetStdHandle(-11);
+</span><span style="color:#75715e"></span>    <span style="color:#00a8c8">mov</span> <span style="color:#00a8c8">ecx</span><span style="color:#111">,</span> <span style="color:#111">-</span><span style="color:#ae81ff">11</span>    <span style="color:#75715e">; fffffff5H
+</span><span style="color:#75715e"></span>    <span style="color:#00a8c8">call</span> <span style="color:#00a8c8">QWORD</span> <span style="color:#00a8c8">PTR</span> <span style="color:#00a8c8">__imp_GetStdHandle</span>
+    <span style="color:#75af00">mov</span> <span style="color:#00a8c8">QWORD</span> <span style="color:#00a8c8">PTR</span> <span style="color:#00a8c8">output</span><span style="color:#111">,</span> <span style="color:#00a8c8">rax</span>
+<span style="color:#75715e">; 12   :     input = GetStdHandle(-10);
+</span><span style="color:#75715e"></span>    <span style="color:#75af00">mov</span> <span style="color:#00a8c8">ecx</span><span style="color:#111">,</span> <span style="color:#111">-</span><span style="color:#ae81ff">10</span>    <span style="color:#75715e">; fffffff6H
+</span><span style="color:#75715e"></span>    <span style="color:#00a8c8">call</span> <span style="color:#00a8c8">QWORD</span> <span style="color:#00a8c8">PTR</span> <span style="color:#00a8c8">__imp_GetStdHandle</span>
+    <span style="color:#75af00">mov</span> <span style="color:#00a8c8">QWORD</span> <span style="color:#00a8c8">PTR</span> <span style="color:#00a8c8">input</span><span style="color:#111">,</span> <span style="color:#00a8c8">rax</span>
+<span style="color:#75715e">; 13   :
+</span><span style="color:#75715e">; 14   :     WriteConsole(output, pmsg, 25, NULL, NULL);
+</span><span style="color:#75715e"></span>    <span style="color:#75af00">mov</span> <span style="color:#00a8c8">QWORD</span> <span style="color:#00a8c8">PTR</span> <span style="color:#111">[</span><span style="color:#00a8c8">rsp</span><span style="color:#960050;background-color:#1e0010">+</span><span style="color:#ae81ff">32</span><span style="color:#111">],</span> <span style="color:#ae81ff">0</span>
+    <span style="color:#75af00">xor</span> <span style="color:#00a8c8">r9d</span><span style="color:#111">,</span> <span style="color:#00a8c8">r9d</span>
+    <span style="color:#75af00">mov</span> <span style="color:#00a8c8">r8d</span><span style="color:#111">,</span> <span style="color:#ae81ff">25</span>
+    <span style="color:#75af00">mov</span> <span style="color:#00a8c8">rdx</span><span style="color:#111">,</span> <span style="color:#00a8c8">QWORD</span> <span style="color:#00a8c8">PTR</span> <span style="color:#00a8c8">pmsg</span>
+    <span style="color:#75af00">mov</span> <span style="color:#00a8c8">rcx</span><span style="color:#111">,</span> <span style="color:#00a8c8">QWORD</span> <span style="color:#00a8c8">PTR</span> <span style="color:#00a8c8">output</span>
+    <span style="color:#75af00">call</span> <span style="color:#00a8c8">QWORD</span> <span style="color:#00a8c8">PTR</span> <span style="color:#00a8c8">__imp_WriteConsoleA</span>
+<span style="color:#75715e">; 15   :     ReadConsole(input, &amp;inputMsg, sizeof(inputMsg) - 1, &amp;numRead, NULL);
+</span><span style="color:#75715e"></span>    <span style="color:#75af00">mov</span> <span style="color:#00a8c8">QWORD</span> <span style="color:#00a8c8">PTR</span> <span style="color:#111">[</span><span style="color:#00a8c8">rsp</span><span style="color:#960050;background-color:#1e0010">+</span><span style="color:#ae81ff">32</span><span style="color:#111">],</span> <span style="color:#ae81ff">0</span>
+    <span style="color:#75af00">lea</span> <span style="color:#00a8c8">r9</span><span style="color:#111">,</span> <span style="color:#00a8c8">OFFSET</span> <span style="color:#00a8c8">FLAT</span><span style="color:#111">:</span><span style="color:#00a8c8">numRead</span>
+    <span style="color:#75af00">mov</span> <span style="color:#00a8c8">r8d</span><span style="color:#111">,</span> <span style="color:#ae81ff">19</span>
+    <span style="color:#75af00">lea</span> <span style="color:#00a8c8">rdx</span><span style="color:#111">,</span> <span style="color:#00a8c8">OFFSET</span> <span style="color:#00a8c8">FLAT</span><span style="color:#111">:</span><span style="color:#00a8c8">inputMsg</span>
+    <span style="color:#75af00">mov</span> <span style="color:#00a8c8">rcx</span><span style="color:#111">,</span> <span style="color:#00a8c8">QWORD</span> <span style="color:#00a8c8">PTR</span> <span style="color:#00a8c8">input</span>
+    <span style="color:#75af00">call</span> <span style="color:#00a8c8">QWORD</span> <span style="color:#00a8c8">PTR</span> <span style="color:#00a8c8">__imp_ReadConsoleA</span>
+<span style="color:#75715e">; 16   :     WriteConsole(output, inputMsg, sizeof(inputMsg), NULL, NULL);
+</span><span style="color:#75715e"></span>    <span style="color:#75af00">mov</span> <span style="color:#00a8c8">QWORD</span> <span style="color:#00a8c8">PTR</span> <span style="color:#111">[</span><span style="color:#00a8c8">rsp</span><span style="color:#960050;background-color:#1e0010">+</span><span style="color:#ae81ff">32</span><span style="color:#111">],</span> <span style="color:#ae81ff">0</span>
+    <span style="color:#75af00">xor</span> <span style="color:#00a8c8">r9d</span><span style="color:#111">,</span> <span style="color:#00a8c8">r9d</span>
+    <span style="color:#75af00">mov</span> <span style="color:#00a8c8">r8d</span><span style="color:#111">,</span> <span style="color:#ae81ff">20</span>
+    <span style="color:#75af00">lea</span> <span style="color:#00a8c8">rdx</span><span style="color:#111">,</span> <span style="color:#00a8c8">OFFSET</span> <span style="color:#00a8c8">FLAT</span><span style="color:#111">:</span><span style="color:#00a8c8">inputMsg</span>
+    <span style="color:#75af00">mov</span> <span style="color:#00a8c8">rcx</span><span style="color:#111">,</span> <span style="color:#00a8c8">QWORD</span> <span style="color:#00a8c8">PTR</span> <span style="color:#00a8c8">output</span>
+    <span style="color:#75af00">call</span> <span style="color:#00a8c8">QWORD</span> <span style="color:#00a8c8">PTR</span> <span style="color:#00a8c8">__imp_WriteConsoleA</span>
+<span style="color:#75715e">; 17   :
+</span><span style="color:#75715e">; 18   :     return 0;
+</span><span style="color:#75715e"></span>    <span style="color:#75af00">xor</span> <span style="color:#00a8c8">eax</span><span style="color:#111">,</span> <span style="color:#00a8c8">eax</span>
+<span style="color:#75715e">; 19   : }
+</span><span style="color:#75715e"></span>    <span style="color:#75af00">add</span> <span style="color:#00a8c8">rsp</span><span style="color:#111">,</span> <span style="color:#ae81ff">56</span>     <span style="color:#75715e">; 00000038H
+</span><span style="color:#75715e"></span>    <span style="color:#00a8c8">ret</span> <span style="color:#ae81ff">0</span>
+<span style="color:#75af00">main</span> <span style="color:#00a8c8">ENDP</span>
+<span style="color:#75af00">_TEXT</span> <span style="color:#00a8c8">ENDS</span>
+<span style="color:#75af00">END</span>
+</code></pre></div><p>There is quite a bit of stuff in there that I don&rsquo;t understand&hellip;but, it did help me to have a better grasp on the calling convention.</p>
+<p>One part of the calling convention is that the first four arguments to a function are passed in <code>RCX</code>, <code>RDX</code>, <code>R8</code>, <code>R9</code> (well, not entirely accurate as already mentioned). When I was typing out the assembly the first time around, I didn&rsquo;t quite &ldquo;get it&rdquo; that a lot of what was going on is just setting up these registers for a function call.</p>
+<p>But for example, this part</p>
+<pre><code>; 12   :     input = GetStdHandle(-10);
+    mov ecx, -10    ; fffffff6H
+    call QWORD PTR __imp_GetStdHandle
+    mov QWORD PTR output, rax
+</code></pre><p>is just putting -10 into the lower bits of the <code>RCX</code> register (<code>RCX</code> is the full 64 bit register, <code>ECX</code> is the lower 32 bits of the same register). So it was just prepping the function call. Then, lastly, output is put in <code>RAX</code> which is where integer results are returned from functions.</p>
+<p>Similarly,</p>
+<pre><code>; 14   :     WriteConsole(output, pmsg, 25, NULL, NULL);
+    mov QWORD PTR [rsp+32], 0
+    xor r9d, r9d
+    mov r8d, 25
+    mov rdx, QWORD PTR pmsg
+    mov rcx, QWORD PTR output
+    call QWORD PTR __imp_WriteConsoleA
+</code></pre><p>The call to WriteConsole takes 5 parameters. So the 5th argument NULL has to get passed on the stack which is what the following line sets up.</p>
+<p><code>mov QWORD PTR [rsp+32], 0</code></p>
+<p>For next two lines, I had to look up what the <code>d</code> on the end of the register name meant. Turns out it is an identical thing to the difference between <code>RCX</code> and <code>EAX</code>. <code>R9</code> is the full 64 bit register, <code>R9d</code> is the lower 32 bits. XORing the register with itself zeros out the register, which is the value for NULL. The value 25 put in <code>R8d</code> is just a value I counted out as the length of the message I wanted to write. This could be calculated or set as a variable instead.</p>
+<pre><code>xor r9d, r9d
+mov r8d, 25
+</code></pre><h1 id="conclusion">Conclusion</h1>
+<p>When I was reading the book and typing up the demo, the connection between the calling convention and what I was typing did not click in my mind. But doing a deeper dive on the convention along with looking at the assembly generated from C, that really helped my understanding of what is going on. There is still a lot to look into though! Also, discovering the <code>-FA</code> flag took me a while but was super satisfying to find, and I plan on using it quite a bit as I continue working through the rest of the chapters.</p>
+<h1 id="references">References</h1>
+<ol>
+<li><a href="https://gpfault.net/posts/asm-tut-0.txt.html">https://gpfault.net/posts/asm-tut-0.txt.html</a></li>
+<li><a href="https://docs.microsoft.com/en-us/cpp/assembler/masm/masm-for-x64-ml64-exe?view=msvc-160">https://docs.microsoft.com/en-us/cpp/assembler/masm/masm-for-x64-ml64-exe?view=msvc-160</a></li>
+<li><a href="https://docs.microsoft.com/en-us/cpp/assembler/masm/ml-and-ml64-command-line-reference?view=msvc-160">https://docs.microsoft.com/en-us/cpp/assembler/masm/ml-and-ml64-command-line-reference?view=msvc-160</a></li>
+<li><a href="https://docs.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=msvc-160">https://docs.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=msvc-160</a></li>
+<li><a href="https://stackoverflow.com/questions/148968/windows-batch-files-bat-vs-cmd">https://stackoverflow.com/questions/148968/windows-batch-files-bat-vs-cmd</a></li>
+<li><a href="https://docs.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-160">https://docs.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-160</a></li>
+<li><a href="https://www.agner.org/optimize/calling_conventions.pdf">https://www.agner.org/optimize/calling_conventions.pdf</a></li>
+<li><a href="https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/x64-architecture?redirectedfrom=MSDN">https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/x64-architecture?redirectedfrom=MSDN</a></li>
+<li><a href="https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/annotated-x64-disassembly">https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/annotated-x64-disassembly</a></li>
+<li><a href="https://docs.microsoft.com/en-us/cpp/build/stack-usage?view=msvc-160">https://docs.microsoft.com/en-us/cpp/build/stack-usage?view=msvc-160</a></li>
+<li><a href="https://docs.microsoft.com/en-us/windows/console/getstdhandle">https://docs.microsoft.com/en-us/windows/console/getstdhandle</a></li>
+<li><a href="https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-instruction-set-reference-manual-325383.pdf">https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-instruction-set-reference-manual-325383.pdf</a></li>
+<li><a href="https://docs.microsoft.com/en-us/cpp/build/reference/fa-fa-listing-file?view=msvc-160">https://docs.microsoft.com/en-us/cpp/build/reference/fa-fa-listing-file?view=msvc-160</a></li>
+<li><a href="http://www.songho.ca/misc/alignment/dataalign.html">http://www.songho.ca/misc/alignment/dataalign.html</a></li>
+<li><a href="https://software.intel.com/content/www/us/en/develop/articles/introduction-to-x64-assembly.html#:~:text=Since%20the%2064%2Dbit%20registers,stored%20in%20lower%20memory%20addresses">https://software.intel.com/content/www/us/en/develop/articles/introduction-to-x64-assembly.html#:~:text=Since%20the%2064%2Dbit%20registers,stored%20in%20lower%20memory%20addresses</a></li>
+<li><a href="https://www.gamasutra.com/view/news/171088/x64_ABI_Intro_to_the_Windows_x64_calling_convention.php">https://www.gamasutra.com/view/news/171088/x64_ABI_Intro_to_the_Windows_x64_calling_convention.php</a></li>
+<li><a href="https://expobrain.net/2013/06/16/disassembly-c-code-for-fun-part-1/">https://expobrain.net/2013/06/16/disassembly-c-code-for-fun-part-1/</a></li>
+</ol>
+
+    <a href="/"> >> Home</a>
+  </main>
+</div>
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+    </footer>
+    
+  </body>
+</html>
+

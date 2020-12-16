@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>AR Journal 1 - History | Home</title>
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/style.css" />
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/fonts.css" />
+    <link rel="stylesheet" href="ninerdelta.github.io/css/theme-override.css">
+    <header>
+
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="ninerdelta.github.io/index.xml">~/rss</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">AR Journal 1 - History</span></h1>
+
+<h2 class="date">2018/05/01</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/ninerdelta.github.io/categories/journal">Journal</a> <a href="/ninerdelta.github.io/categories/ar-journal">AR Journal</a> 
+  
+  
+  
+  Tags: <a href="/ninerdelta.github.io/tags/ar">AR</a> 
+  
+  
+</p>
+</div>
+
+
+<div class="content-wrapper">
+  <main>
+    <p><a href="https://medium.com/@DAQRI/depth-cameras-for-mobile-ar-from-iphones-to-wearables-and-beyond-ea29758ec280">Depth Cameras For Mobile AR</a></p>
+<ul>
+<li>Four primary types, Passive Stereo, Active Stereo, Structured Light, Time of Flight</li>
+<li>Must have very small form factor to be useful on mobile, and operate with limited computing resources</li>
+<li>Range (distance) of operation from gesture recognition to environmental scanning requires tradeoffs</li>
+<li>Primarily limited to indoors</li>
+</ul>
+<p><a href="https://arxiv.org/abs/1505.01319">The History of Mobile AR 1968 - 2009</a></p>
+<ul>
+<li>1968 Ivan Sutherland&rsquo;s <a href="https://en.wikipedia.org/wiki/The_Sword_of_Damocles_(virtual_reality)">Sword of Damocles VR HMD</a></li>
+<li>1973 Motorola demos the first mobile phone</li>
+<li>1993 NAVSTAR GPS launched</li>
+<li>1994 Reality-Virtuality continuum and augmented reality formally defined</li>
+<li>1997 Philippe Kahn shares the first picture taken by a phone (he invented the camera phone)</li>
+<li>1999 ARToolKit is presented and available as open source</li>
+<li>2007 iPhone is released!</li>
+<li>2009 SLAM running in real-time on iPhone</li>
+</ul>
+<p><a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.391.2823">(2013) Real-time Motion Tracking on a Cellphone</a></p>
+<ul>
+<li>Fused intertial measurement unit (IMU) readings with camera tracking</li>
+<li>Existing methods at the time where based on &ldquo;global shutter&rdquo; cameras, but phones use &ldquo;rolling-shutter&rdquo;</li>
+<li>Novel approach accomodated rolling-shutter cameras, IMUs, and extended Kalman filter (EKF)</li>
+<li>Results showed very low error, and the addition of GPS could be used as a correction factor</li>
+</ul>
+<p><a href="https://www.semanticscholar.org/paper/Detection-of-Planar-Patches-in-Handheld-Image-K%C3%A4hler-Denzler/1aa4bea95dce679ce4d8823b9e0a96c95d4aca61">Plane Detection</a></p>
+<ul>
+<li>There are a range of approaches to this problem!</li>
+<li>A <a href="https://en.wikipedia.org/wiki/Homography_(computer_vision)">Homography</a> is one approach, and is a way of relating two co-planar images</li>
+<li>Requires a sequence of images with translation, rotation does not provide a solution</li>
+<li>Solutions must account for &ldquo;virtual planes&rdquo; i.e. a plane that isn&rsquo;t attached to something real</li>
+<li>Sometimes includes a method called <a href="https://en.wikipedia.org/wiki/Random_sample_consensus">&ldquo;Random Sample Consensus (RANSAC)&quot;</a> which tries to eliminate &ldquo;outliers&rdquo; and find a model that fits &ldquo;inliers&rdquo;
+<ul>
+<li>However this algorithm deteriorates when the sample data contains ~%50 &ldquo;outliers&rdquo;</li>
+</ul>
+</li>
+</ul>
+
+    <a href="/"> >> Home</a>
+  </main>
+</div>
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+    </footer>
+    
+  </body>
+</html>
+
