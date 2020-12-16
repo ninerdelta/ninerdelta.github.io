@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>Unity Journal 2 - C#, .NET, IL2CPP | Home</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="https://ninerdelta.com/css/theme-override.css">
+    <header>
+
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://ninerdelta.com">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/rss</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Unity Journal 2 - C#, .NET, IL2CPP</span></h1>
+
+<h2 class="date">2018/01/22</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/journal">Journal</a> <a href="/categories/unity-journal">Unity Journal</a> 
+  
+  
+  
+  Tags: <a href="/tags/unity">Unity</a> <a href="/tags/c">C#</a> 
+  
+  
+</p>
+</div>
+
+
+<div class="content-wrapper">
+  <main>
+    <p><a href="https://www.developer.com/net/cplus/article.php/2197621">What is Managed and Unmanaged Code?</a></p>
+<ul>
+<li>Managed code runs in the Common Language Runtime (CLR) and compiles to an intermediate language (IL)</li>
+<li>Unmanaged is outside the CLR, and compile directly to native machine code</li>
+</ul>
+<p><a href="https://blogs.unity3d.com/2014/05/20/the-future-of-scripting-in-unity/">Unity Scripting Backend</a></p>
+<ul>
+<li>Replacing Mono with in house .NET runtime IL2CPP</li>
+<li>Generates C++ source code from assemblies, then relies on existing C++ compilers to create native binaries</li>
+<li><a href="https://en.wikipedia.org/wiki/Virtual_machine">Virtual Machine (VM)</a> provides extra such as Garbage Collection (GC), metadata, and platform specific resources</li>
+<li>Leverages existing compilers and removes effort in porting Mono to every platform</li>
+<li>IL2CPP will fast forward Unity to modern .NET features</li>
+</ul>
+<p><a href="https://blogs.infosupport.com/net-core-and-net-standard-2-0/">.NET Standard 2.0</a></p>
+<ul>
+<li>.NET Core is a platform which implements .NET Standards</li>
+<li>Support for an increased number of APIs</li>
+</ul>
+<p><a href="https://sometimesicode.wordpress.com/2014/02/19/how-does-unity-export-to-so-many-platforms/">Unity Platform Support</a></p>
+<ul>
+<li>C++ Engine, compiled natively for each platform</li>
+<li>Extensive use of third party libraries (for physics, audio, lighting etc)</li>
+<li>Leverages scripting backend (Mono or IL2CPP) to run C# scripts in native environment</li>
+</ul>
+<p><a href="https://blogs.unity3d.com/2015/05/06/an-introduction-to-ilcpp-internals/">IL2CPP Internals</a></p>
+<ul>
+<li>Two parts: <a href="https://en.wikipedia.org/wiki/AOT_compiler">ahead-of-time (AOT) compiler</a>, runtime library to support VM</li>
+<li>Runtime is designed to be independent of a specific garbage collector, meaning Unity could integrate a different one than what currently ships</li>
+<li>Still relies on C# standard library code</li>
+</ul>
+
+    <a href="/"> >> Home</a>
+  </main>
+</div>
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+    </footer>
+    
+  </body>
+</html>
+

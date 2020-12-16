@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>git on Home</title>
+    <link>https://ninerdelta.com/tags/git/</link>
+    <description>Recent content in git on Home</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 13 Jan 2018 13:24:48 -0800</lastBuildDate><atom:link href="https://ninerdelta.com/tags/git/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Unity Journal 1 - serialization, git, ScriptableObjects</title>
+      <link>https://ninerdelta.com/post/2018/01/13/unity-journal-1-serialization-git-scriptableobjects/</link>
+      <pubDate>Sat, 13 Jan 2018 13:24:48 -0800</pubDate>
+      
+      <guid>https://ninerdelta.com/post/2018/01/13/unity-journal-1-serialization-git-scriptableobjects/</guid>
+      <description>How to Git with Unity
+ Configure .gitignore Relevent Unity Editor settings Setup Git Large File Storage (LFS)  Unity Tutorials - Intro to Scriptable Objects
+ Can be used without attaching to a GameObject Saved as assets (good for version control!) Helps with memory management by storing references to data instead of copies  Unity Blog - Making cool stuff with ScriptableObjects
+ Asset to hold custom data, or execute code Enables a very &amp;ldquo;pluggable architecture&amp;rdquo; Unity is a C++ engine with a .</description>
+    </item>
+    
+  </channel>
+</rss>

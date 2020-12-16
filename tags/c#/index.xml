@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>C# on Home</title>
+    <link>https://ninerdelta.com/tags/c#/</link>
+    <description>Recent content in C# on Home</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 22 Jan 2018 22:03:58 -0800</lastBuildDate><atom:link href="https://ninerdelta.com/tags/c#/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Unity Journal 2 - C#, .NET, IL2CPP</title>
+      <link>https://ninerdelta.com/post/2018/01/22/unity-journal-2-c#-.net-il2cpp/</link>
+      <pubDate>Mon, 22 Jan 2018 22:03:58 -0800</pubDate>
+      
+      <guid>https://ninerdelta.com/post/2018/01/22/unity-journal-2-c#-.net-il2cpp/</guid>
+      <description>What is Managed and Unmanaged Code?
+ Managed code runs in the Common Language Runtime (CLR) and compiles to an intermediate language (IL) Unmanaged is outside the CLR, and compile directly to native machine code  Unity Scripting Backend
+ Replacing Mono with in house .NET runtime IL2CPP Generates C++ source code from assemblies, then relies on existing C++ compilers to create native binaries Virtual Machine (VM) provides extra such as Garbage Collection (GC), metadata, and platform specific resources Leverages existing compilers and removes effort in porting Mono to every platform IL2CPP will fast forward Unity to modern .</description>
+    </item>
+    
+  </channel>
+</rss>
