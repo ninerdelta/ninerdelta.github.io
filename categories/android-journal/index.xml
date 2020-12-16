@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Android Journal on Home</title>
-    <link>https://ninerdelta.com/categories/android-journal/</link>
+    <link>www.ninerdelta.com/categories/android-journal/</link>
     <description>Recent content in Android Journal on Home</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 21 May 2018 22:36:33 -0700</lastBuildDate><atom:link href="https://ninerdelta.com/categories/android-journal/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 21 May 2018 22:36:33 -0700</lastBuildDate><atom:link href="www.ninerdelta.com/categories/android-journal/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Android Journal 1 - Design Patterns</title>
-      <link>https://ninerdelta.com/post/2018/05/21/android-journal-1-design-patterns/</link>
+      <link>www.ninerdelta.com/post/2018/05/21/android-journal-1-design-patterns/</link>
       <pubDate>Mon, 21 May 2018 22:36:33 -0700</pubDate>
       
-      <guid>https://ninerdelta.com/post/2018/05/21/android-journal-1-design-patterns/</guid>
+      <guid>www.ninerdelta.com/post/2018/05/21/android-journal-1-design-patterns/</guid>
       <description>Android App Architecture Guidelines
  Rigorously define boundaries between modules Design lean interfaces e.g. don&amp;rsquo;t expose more functionality than needed Design for offline functionality Spend time on what counts, not on reinventing the wheel  The MVVM Pattern
  Three core components - model, view, view model (MVVM!) Motivation is separation of concerns and increased testability Leverages data binding, where view is updated via event &amp;ldquo;observers&amp;rdquo; or subscribers Decoupling UI (view) from logic enables more flexibility/iteration for design  Comparison of Architectures</description>
