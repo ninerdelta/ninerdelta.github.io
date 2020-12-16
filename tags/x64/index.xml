@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>x64 on Home</title>
-    <link>ninerdelta.github.io/tags/x64/</link>
+    <link>https://ninerdelta.com/tags/x64/</link>
     <description>Recent content in x64 on Home</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 16 Dec 2020 01:19:23 -0600</lastBuildDate><atom:link href="ninerdelta.github.io/tags/x64/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 16 Dec 2020 01:19:23 -0600</lastBuildDate><atom:link href="https://ninerdelta.com/tags/x64/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Win X64 Asm 1</title>
-      <link>ninerdelta.github.io/post/2020/12/16/win-x64-asm-1/</link>
+      <link>https://ninerdelta.com/post/2020/12/16/win-x64-asm-1/</link>
       <pubDate>Wed, 16 Dec 2020 01:19:23 -0600</pubDate>
       
-      <guid>ninerdelta.github.io/post/2020/12/16/win-x64-asm-1/</guid>
+      <guid>https://ninerdelta.com/post/2020/12/16/win-x64-asm-1/</guid>
       <description>Intro I&amp;rsquo;m working through the book &amp;ldquo;Windows 64-bit Assembly Language Programming&amp;rdquo; and taking some notes.
 My first notes are about environment setup, and working on Chapter 3 &amp;ldquo;Hello World&amp;rdquo;.
 A few tutorials I&amp;rsquo;ve seen use assemblers like FASM or NASM, but the book uses ML64 so that is what I used as well.
