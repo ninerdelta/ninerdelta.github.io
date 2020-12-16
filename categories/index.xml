@@ -2,62 +2,62 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on Home</title>
-    <link>www.ninerdelta.com/categories/</link>
+    <link>ninerdelta.github.io/categories/</link>
     <description>Recent content in Categories on Home</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 27 Jun 2018 19:46:16 -0700</lastBuildDate><atom:link href="www.ninerdelta.com/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 27 Jun 2018 19:46:16 -0700</lastBuildDate><atom:link href="ninerdelta.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Dev Journal</title>
-      <link>www.ninerdelta.com/categories/dev-journal/</link>
+      <link>ninerdelta.github.io/categories/dev-journal/</link>
       <pubDate>Wed, 27 Jun 2018 19:46:16 -0700</pubDate>
       
-      <guid>www.ninerdelta.com/categories/dev-journal/</guid>
+      <guid>ninerdelta.github.io/categories/dev-journal/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Journal</title>
-      <link>www.ninerdelta.com/categories/journal/</link>
+      <link>ninerdelta.github.io/categories/journal/</link>
       <pubDate>Wed, 27 Jun 2018 19:46:16 -0700</pubDate>
       
-      <guid>www.ninerdelta.com/categories/journal/</guid>
+      <guid>ninerdelta.github.io/categories/journal/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Unity Journal</title>
-      <link>www.ninerdelta.com/categories/unity-journal/</link>
+      <link>ninerdelta.github.io/categories/unity-journal/</link>
       <pubDate>Tue, 05 Jun 2018 22:18:28 -0700</pubDate>
       
-      <guid>www.ninerdelta.com/categories/unity-journal/</guid>
+      <guid>ninerdelta.github.io/categories/unity-journal/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Android Journal</title>
-      <link>www.ninerdelta.com/categories/android-journal/</link>
+      <link>ninerdelta.github.io/categories/android-journal/</link>
       <pubDate>Mon, 21 May 2018 22:36:33 -0700</pubDate>
       
-      <guid>www.ninerdelta.com/categories/android-journal/</guid>
+      <guid>ninerdelta.github.io/categories/android-journal/</guid>
       <description></description>
     </item>
     
     <item>
       <title>AR Journal</title>
-      <link>www.ninerdelta.com/categories/ar-journal/</link>
+      <link>ninerdelta.github.io/categories/ar-journal/</link>
       <pubDate>Tue, 01 May 2018 02:09:57 -0700</pubDate>
       
-      <guid>www.ninerdelta.com/categories/ar-journal/</guid>
+      <guid>ninerdelta.github.io/categories/ar-journal/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Reading Journal</title>
-      <link>www.ninerdelta.com/categories/reading-journal/</link>
+      <link>ninerdelta.github.io/categories/reading-journal/</link>
       <pubDate>Mon, 16 Apr 2018 22:19:34 -0700</pubDate>
       
-      <guid>www.ninerdelta.com/categories/reading-journal/</guid>
+      <guid>ninerdelta.github.io/categories/reading-journal/</guid>
       <description></description>
     </item>
     

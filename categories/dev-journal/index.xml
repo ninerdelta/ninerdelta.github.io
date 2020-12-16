@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Dev Journal on Home</title>
-    <link>www.ninerdelta.com/categories/dev-journal/</link>
+    <link>ninerdelta.github.io/categories/dev-journal/</link>
     <description>Recent content in Dev Journal on Home</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 27 Jun 2018 19:46:16 -0700</lastBuildDate><atom:link href="www.ninerdelta.com/categories/dev-journal/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 27 Jun 2018 19:46:16 -0700</lastBuildDate><atom:link href="ninerdelta.github.io/categories/dev-journal/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Graphics Dev Journal 1</title>
-      <link>www.ninerdelta.com/post/2018/06/27/graphics-dev-journal-1/</link>
+      <link>ninerdelta.github.io/post/2018/06/27/graphics-dev-journal-1/</link>
       <pubDate>Wed, 27 Jun 2018 19:46:16 -0700</pubDate>
       
-      <guid>www.ninerdelta.com/post/2018/06/27/graphics-dev-journal-1/</guid>
+      <guid>ninerdelta.github.io/post/2018/06/27/graphics-dev-journal-1/</guid>
       <description>A Journey Through Space Transformations NOTE: THIS POST CONTAINS MATH ERRORS (12/14/2020)
 Say the point p0 is in object space and its coordinates are {0, 2, 0, 1} so just a point on the Y axis.
 p0 is placed in world space by a model transformation shown in Figure 1, that is, no rotation, just translated along Z axis by 5 units.
