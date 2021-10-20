@@ -156,7 +156,6 @@
 	<span style="color:#00a8c8">int</span> <span style="color:#111">result</span> <span style="color:#f92672">=</span> <span style="color:#111">b</span> <span style="color:#f92672">+</span> <span style="color:#111">c</span><span style="color:#111">;</span>
 	<span style="color:#00a8c8">return</span> <span style="color:#111">result</span><span style="color:#111">;</span>
 <span style="color:#111">}</span>
-
 </code></pre></div><p>We experience the difference in lvalues and rvalues when we have a function such as the one in <em>example 4</em>, and try to use it in the ways shown in <em>example 5</em>.</p>
 <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 4
 </span><span style="color:#75715e"></span>
@@ -327,7 +326,6 @@
 
     <span style="color:#00a8c8">return</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
 <span style="color:#111">}</span>
-
 </code></pre></div><p>Figure 1 shows a tuple named <code>foo</code> created with &ldquo;as is&rdquo; types for <code>_Fn</code> and <code>_Arg</code>. The function ends up as a function pointer, and the arg is <code>int&amp;</code> so nothing new or exciting.</p>
 <p><img src="/images/threads_tuple_wo_decay_2.png" alt="figure1">
 <em>figure 1</em></p>
