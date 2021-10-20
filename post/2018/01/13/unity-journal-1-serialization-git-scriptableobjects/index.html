@@ -1,4 +1,150 @@
-<!doctype html><html lang=en-us><head><link rel=stylesheet href=//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css><script src=//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js></script><script>hljs.initHighlightingOnLoad();</script><link rel=apple-touch-icon sizes=180x180 href=/images/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/images/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/images/favicon-16x16.png><link rel=manifest href=/images/site.webmanifest><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><title>Unity Journal 1 - serialization, git, ScriptableObjects | Home</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><link rel=stylesheet href=https://ninerdelta.com/css/theme-override.css><header><nav><ul><li class=pull-left><a href=https://ninerdelta.com/>~/home</a></li><li class=pull-left><a href=/categories/>~/categories</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-right><a href=/index.xml>~/rss</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>Unity Journal 1 - serialization, git, ScriptableObjects</span></h1><h2 class=date>2018/01/13</h2><p class=terms>Categories: <a href=/categories/journal>Journal</a> <a href=/categories/unity-journal>Unity Journal</a>
-Tags: <a href=/tags/unity>Unity</a> <a href=/tags/git>git</a></p></div><div class=content-wrapper><main><p><a href=https://robots.thoughtbot.com/how-to-git-with-unity>How to Git with Unity</a></p><ul><li>Configure .gitignore</li><li>Relevent Unity Editor settings</li><li>Setup Git Large File Storage (LFS)</li></ul><p><a href=https://unity3d.com/learn/tutorials/modules/beginner/live-training-archive/scriptable-objects>Unity Tutorials - Intro to Scriptable Objects</a></p><ul><li>Can be used without attaching to a GameObject</li><li>Saved as assets (good for version control!)</li><li>Helps with memory management by storing references to data instead of copies</li></ul><p><a href=https://blogs.unity3d.com/2017/11/20/making-cool-stuff-with-scriptableobjects/>Unity Blog - Making cool stuff with ScriptableObjects</a></p><ul><li>Asset to hold custom data, or execute code</li><li>Enables a very &ldquo;pluggable architecture&rdquo;</li><li>Unity is a C++ engine with a .NET layer (from first video in link)</li></ul><p><a href=https://blogs.unity3d.com/2014/06/24/serialization-in-unity/>Unity Blog - Serialization in Unity</a></p><ul><li>Serialization is a core part of Unity</li><li>System written in C++, one of the main ways data is communicated between C++ and .NET layer</li><li>May behave differently than expected (by a C# dev) due to performance requirements</li><li>It is possible to use serializer callbacks for custom types that are not compatible with default serialization behavior</li></ul><p><a href=https://unity3d.com/learn/tutorials/temas/best-practices/assets-objects-and-serialization#footnote-3-ref>Unity tutorials - Assets, Objects and serialization</a></p><ul><li>Asset is a file on disk located in the Unity project&rsquo;s Asset folder</li><li>UnityEngine.Object (Object) is a &ldquo;set of serialized data cellectively describing a specific instance of a resource&rdquo;</li><li>ScriptableObject and MonoBehaviour are &ldquo;special&rdquo; Objects<ul><li>ScriptableObject lets dev define their own data types</li><li>MonoBehaviour is a wrapper that links to a MonoScript</li></ul></li><li>Storage I/O of serialized data for Components and GameObjects in the hierarchy is the &ldquo;dominant time cost&rdquo; at load time</li></ul><a href=/>>> Home</a></main></div><footer><script>(function(){function center_el(tagName){var tags=document.getElementsByTagName(tagName),i,tag;for(i=0;i<tags.length;i++){tag=tags[i];var parent=tag.parentElement;if(parent.childNodes.length===1){if(parent.nodeName==='A'){parent=parent.parentElement;if(parent.childNodes.length!=1)continue;}
-if(parent.nodeName==='P')parent.style.textAlign='center';}}}
-var tagNames=['img','embed','object'];for(var i=0;i<tagNames.length;i++){center_el(tagNames[i]);}})();</script></footer></body></html>
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>Unity Journal 1 - serialization, git, ScriptableObjects | Home</title>
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/style.css" />
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/fonts.css" />
+    <link rel="stylesheet" href="ninerdelta.github.io/css/theme-override.css">
+    <header>
+
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="ninerdelta.github.io/index.xml">~/rss</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Unity Journal 1 - serialization, git, ScriptableObjects</span></h1>
+
+<h2 class="date">2018/01/13</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/ninerdelta.github.io/categories/journal">Journal</a> <a href="/ninerdelta.github.io/categories/unity-journal">Unity Journal</a> 
+  
+  
+  
+  Tags: <a href="/ninerdelta.github.io/tags/unity">Unity</a> <a href="/ninerdelta.github.io/tags/git">git</a> 
+  
+  
+</p>
+</div>
+
+
+<div class="content-wrapper">
+  <main>
+    <p><a href="https://robots.thoughtbot.com/how-to-git-with-unity">How to Git with Unity</a></p>
+<ul>
+<li>Configure .gitignore</li>
+<li>Relevent Unity Editor settings</li>
+<li>Setup Git Large File Storage (LFS)</li>
+</ul>
+<p><a href="https://unity3d.com/learn/tutorials/modules/beginner/live-training-archive/scriptable-objects">Unity Tutorials - Intro to Scriptable Objects</a></p>
+<ul>
+<li>Can be used without attaching to a GameObject</li>
+<li>Saved as assets (good for version control!)</li>
+<li>Helps with memory management by storing references to data instead of copies</li>
+</ul>
+<p><a href="https://blogs.unity3d.com/2017/11/20/making-cool-stuff-with-scriptableobjects/">Unity Blog - Making cool stuff with ScriptableObjects</a></p>
+<ul>
+<li>Asset to hold custom data, or execute code</li>
+<li>Enables a very &ldquo;pluggable architecture&rdquo;</li>
+<li>Unity is a C++ engine with a .NET layer (from first video in link)</li>
+</ul>
+<p><a href="https://blogs.unity3d.com/2014/06/24/serialization-in-unity/">Unity Blog - Serialization in Unity</a></p>
+<ul>
+<li>Serialization is a core part of Unity</li>
+<li>System written in C++, one of the main ways data is communicated between C++ and .NET layer</li>
+<li>May behave differently than expected (by a C# dev) due to performance requirements</li>
+<li>It is possible to use serializer callbacks for custom types that are not compatible with default serialization behavior</li>
+</ul>
+<p><a href="https://unity3d.com/learn/tutorials/temas/best-practices/assets-objects-and-serialization#footnote-3-ref">Unity tutorials - Assets, Objects and serialization</a></p>
+<ul>
+<li>Asset is a file on disk located in the Unity project&rsquo;s Asset folder</li>
+<li>UnityEngine.Object (Object) is a &ldquo;set of serialized data cellectively describing a specific instance of a resource&rdquo;</li>
+<li>ScriptableObject and MonoBehaviour are &ldquo;special&rdquo; Objects
+<ul>
+<li>ScriptableObject lets dev define their own data types</li>
+<li>MonoBehaviour is a wrapper that links to a MonoScript</li>
+</ul>
+</li>
+<li>Storage I/O of serialized data for Components and GameObjects in the hierarchy is the &ldquo;dominant time cost&rdquo; at load time</li>
+</ul>
+
+    <a href="/"> >> Home</a>
+  </main>
+</div>
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+    </footer>
+    
+  </body>
+</html>
+

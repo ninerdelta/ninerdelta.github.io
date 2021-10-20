@@ -111,7 +111,7 @@ main {
   font-size: 1.1em;
 }
 main a {
-  font-weight: normal;
+  font-weight: bold;
 }
 blockquote {
   background: #f9f9f9;

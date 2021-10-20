@@ -1,4 +1,157 @@
-<!doctype html><html lang=en-us><head><link rel=stylesheet href=//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css><script src=//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js></script><script>hljs.initHighlightingOnLoad();</script><link rel=apple-touch-icon sizes=180x180 href=/images/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/images/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/images/favicon-16x16.png><link rel=manifest href=/images/site.webmanifest><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><title>Unity Journal 3 - best practices, software engineering | Home</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><link rel=stylesheet href=https://ninerdelta.com/css/theme-override.css><header><nav><ul><li class=pull-left><a href=https://ninerdelta.com/>~/home</a></li><li class=pull-left><a href=/categories/>~/categories</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-right><a href=/index.xml>~/rss</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>Unity Journal 3 - best practices, software engineering</span></h1><h2 class=date>2018/01/29</h2><p class=terms>Categories: <a href=/categories/journal>Journal</a> <a href=/categories/unity-journal>Unity Journal</a>
-Tags: <a href=/tags/unity>Unity</a> <a href=/tags/software-engineering>Software Engineering</a></p></div><div class=content-wrapper><main><p><a href=https://www.gamasutra.com/blogs/HermanTulleken/20160812/279100/50_Tips_and_Best_Practices_for_Unity_2016_Edition.php>50 Tips and Best Practices</a></p><ul><li>Learn to use coroutines effectively<ul><li>parallel, series, custom</li></ul></li><li>Avoid using different idioms to do the same thing</li><li>Use singletons for convenience<ul><li>mainly useful for &ldquo;manager&rdquo; objects</li><li>define static properties & methods to enable &ldquo;Manager.player&rdquo; and avoid having to use &ldquo;Manager.Instance.player&rdquo;</li></ul></li><li>Learn how to use debugging facilities effectively<ul><li>Make use of third party extensions as well</li></ul></li></ul><p><a href=https://microsoft.github.io/techcasestudies/devops/2017/03/14/goodbyeworld.html>Automated Build Pipeline Case Study - GoodbyeWorld Games</a></p><ul><li>Manual build process can easily become a mess of unknown builds</li><li>Configured a process where a build is initiated by a commit to master and also runs tests</li><li>Maintaining a list of dependencies can be problematic</li><li>Upfront time investment can be high but then builds take minutes and reduce confusion</li></ul><p><a href=https://jacksondunstan.com/articles/3694>Unit Testing Code That Uses the Unity Engine - 1</a></p><ul><li>NSubstitute can be used to create mock / fake implementations</li><li>Can lead to a lot of boilerpalte</li><li>Adds bloat</li><li>Can lead to an additional layer of abstraction through virutal calls which can be slower than non-virtual calls</li></ul><p><a href=https://jacksondunstan.com/articles/3706>Unit Testing Code That Uses the Unity Engine - 2</a></p><ul><li>Alternative approach where a complete UnityEngine.dll is created</li><li>Does not add the abstraction overhead</li><li>Some complexity involved because it will require context switching of dlls</li></ul><p><a href=https://docs.microsoft.com/en-us/visualstudio/cross-platform/application-lifecycle-management-alm-with-unity-apps>Application Management (ALM) with Unity Apps</a></p><ul><li>Microsoft / Visual Studio has useful tools for improving code quality, testing, managing releases, and beta distribution</li></ul><a href=/>>> Home</a></main></div><footer><script>(function(){function center_el(tagName){var tags=document.getElementsByTagName(tagName),i,tag;for(i=0;i<tags.length;i++){tag=tags[i];var parent=tag.parentElement;if(parent.childNodes.length===1){if(parent.nodeName==='A'){parent=parent.parentElement;if(parent.childNodes.length!=1)continue;}
-if(parent.nodeName==='P')parent.style.textAlign='center';}}}
-var tagNames=['img','embed','object'];for(var i=0;i<tagNames.length;i++){center_el(tagNames[i]);}})();</script></footer></body></html>
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>Unity Journal 3 - best practices, software engineering | Home</title>
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/style.css" />
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/fonts.css" />
+    <link rel="stylesheet" href="ninerdelta.github.io/css/theme-override.css">
+    <header>
+
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="ninerdelta.github.io/index.xml">~/rss</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Unity Journal 3 - best practices, software engineering</span></h1>
+
+<h2 class="date">2018/01/29</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/ninerdelta.github.io/categories/journal">Journal</a> <a href="/ninerdelta.github.io/categories/unity-journal">Unity Journal</a> 
+  
+  
+  
+  Tags: <a href="/ninerdelta.github.io/tags/unity">Unity</a> <a href="/ninerdelta.github.io/tags/software-engineering">Software Engineering</a> 
+  
+  
+</p>
+</div>
+
+
+<div class="content-wrapper">
+  <main>
+    <p><a href="https://www.gamasutra.com/blogs/HermanTulleken/20160812/279100/50_Tips_and_Best_Practices_for_Unity_2016_Edition.php">50 Tips and Best Practices</a></p>
+<ul>
+<li>Learn to use coroutines effectively
+<ul>
+<li>parallel, series, custom</li>
+</ul>
+</li>
+<li>Avoid using different idioms to do the same thing</li>
+<li>Use singletons for convenience
+<ul>
+<li>mainly useful for &ldquo;manager&rdquo; objects</li>
+<li>define static properties &amp; methods to enable &ldquo;Manager.player&rdquo; and avoid having to use &ldquo;Manager.Instance.player&rdquo;</li>
+</ul>
+</li>
+<li>Learn how to use debugging facilities effectively
+<ul>
+<li>Make use of third party extensions as well</li>
+</ul>
+</li>
+</ul>
+<p><a href="https://microsoft.github.io/techcasestudies/devops/2017/03/14/goodbyeworld.html">Automated Build Pipeline Case Study - GoodbyeWorld Games</a></p>
+<ul>
+<li>Manual build process can easily become a mess of unknown builds</li>
+<li>Configured a process where a build is initiated by a commit to master and also runs tests</li>
+<li>Maintaining a list of dependencies can be problematic</li>
+<li>Upfront time investment can be high but then builds take minutes and reduce confusion</li>
+</ul>
+<p><a href="https://jacksondunstan.com/articles/3694">Unit Testing Code That Uses the Unity Engine - 1</a></p>
+<ul>
+<li>NSubstitute can be used to create mock / fake implementations</li>
+<li>Can lead to a lot of boilerpalte</li>
+<li>Adds bloat</li>
+<li>Can lead to an additional layer of abstraction through virutal calls which can be slower than non-virtual calls</li>
+</ul>
+<p><a href="https://jacksondunstan.com/articles/3706">Unit Testing Code That Uses the Unity Engine - 2</a></p>
+<ul>
+<li>Alternative approach where a complete UnityEngine.dll is created</li>
+<li>Does not add the abstraction overhead</li>
+<li>Some complexity involved because it will require context switching of dlls</li>
+</ul>
+<p><a href="https://docs.microsoft.com/en-us/visualstudio/cross-platform/application-lifecycle-management-alm-with-unity-apps">Application Management (ALM) with Unity Apps</a></p>
+<ul>
+<li>Microsoft / Visual Studio has useful tools for improving code quality, testing, managing releases, and beta distribution</li>
+</ul>
+
+    <a href="/"> >> Home</a>
+  </main>
+</div>
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+    </footer>
+    
+  </body>
+</html>
+

@@ -1,5 +1,180 @@
-<!doctype html><html lang=en-us><head><link rel=stylesheet href=//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css><script src=//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js></script><script>hljs.initHighlightingOnLoad();</script><link rel=apple-touch-icon sizes=180x180 href=/images/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/images/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/images/favicon-16x16.png><link rel=manifest href=/images/site.webmanifest><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><title>Graphics Dev Journal 1 | Home</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><link rel=stylesheet href=https://ninerdelta.com/css/theme-override.css><header><nav><ul><li class=pull-left><a href=https://ninerdelta.com/>~/home</a></li><li class=pull-left><a href=/categories/>~/categories</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-right><a href=/index.xml>~/rss</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>Graphics Dev Journal 1</span></h1><h2 class=date>2018/06/27</h2><p class=terms>Categories: <a href=/categories/journal>Journal</a> <a href=/categories/dev-journal>Dev Journal</a>
-Tags: <a href=/tags/graphics>Graphics</a> <a href=/tags/math>Math</a></p></div><div class=content-wrapper><main><h2 id=a-journey-through-space-transformations>A Journey Through Space Transformations</h2><p><em>NOTE: THIS POST CONTAINS MATH ERRORS (12/14/2020)</em></p><p>Say the point <code>p0</code> is in <strong>object space</strong> and its coordinates are <code>{0, 2, 0, 1}</code>
-so just a point on the <code>Y axis</code>.</p><p><code>p0</code> is placed in <strong>world space</strong> by a <strong>model</strong> transformation shown in <strong>Figure 1</strong>, that is, no rotation, just translated along <code>Z axis</code> by 5 units.</p><p><img src=/images/figure1.jpg alt=figure1></p><p>The camera is sitting at the origin of <strong>world space</strong> but &ldquo;looking&rdquo; down the <code>-Z axis</code>, so the camera&rsquo;s location in world space is <code>c0 = {0, 0, 0, 1}</code> and its coordinate system can be represented as shown in <strong>Figure 2</strong>, and then combining its location and coordinate system into <strong>view matrix</strong> also shown in <strong>Figure 2</strong></p><p><img src=/images/figure2.jpg alt=figure2></p><h5 id=note>Note:</h5><p><code>This is not a very sophisticated camera placement. It could be placed in the world and made to look at some point using a lookAt transformation. But to simply show the steps, I chose an easy camera location and chose a point I knew would be within view of the camera</code></p><p>To place <code>p0_world</code> (that is <code>p0</code> transformed by <strong>model</strong>), into <strong>view space</strong>, it looks like the following. Note the sign change on the <code>Z</code> component after transforming from <code>p0_world</code> to <code>p0_view</code>.</p><p><img src=/images/figure3.jpg alt=figure3></p><p>The next step is to put <code>p0_view</code> into projection space and to do that requires a <strong>projection matrix</strong>. Information about how projection matrices (in this case a perspective projection) are constructed can be found at reference <a href="https://www.youtube.com/watch?v=VpNJbvZhNCQ">4</a>. The required parameters are <strong>field of view (fov)</strong>, <strong>near plane (zNear)</strong>, and <strong>far plane (zFar)</strong>, as well as the viewing screen&rsquo;s width and height (more specifically <code>aspect ratio</code>). The <strong>projection matrix</strong> I came up with has the following parameters</p><ul><li><p><code>fov</code> = 60 degrees</p></li><li><p><code>aspect</code> = 16:9</p></li><li><p><code>zNear</code> = 2</p></li><li><p><code>zFar</code> = 100</p></li></ul><p>Which produces the resulting matrix shown in <strong>Figure 4</strong></p><ul><li><p>Notes</p><ul><li>Values have been rounded down to one significant figure</li><li>I have been laying out matrices in <a href=https://en.wikipedia.org/wiki/Row-_and_column-major_order>row major order</a></li></ul></li></ul><p><img src=/images/figure4.jpg alt=figure4></p><p>Transforming to projection space, or <strong>homogeneous clip space</strong> <a href=(http://antongerdelan.net/opengl/raycasting.html)>1</a> is then accomplished by multiplying <code>p0_view</code> with the <strong>projection matrix</strong></p><p><img src=/images/figure5.jpg alt=figure5></p><p>In the next step, divide the elements of <code>p0_clip</code> by its 4th element to transform into <strong>normalized device space</strong> <a href=http://antongerdelan.net/opengl/raycasting.html>1</a>. This produces <code>p0_nds = {0.0, 0.7, 0.2, 1.0}</code></p><p>Finally convert to rasterization or <strong>view port</strong> space, using the calculations shown in <strong>Figure 6</strong></p><p><img src=/images/figure6.jpg alt=figure6></p><p>Looking at the result in <strong>Figure 6</strong>, it makes sense that the X coordinate is 720, because essentially the camera is sitting at <code>{0, 0, 0}</code> in <strong>world space</strong>, which transforms to the center of the <strong>view port</strong> i.e. <code>{720, 1280}</code>. Since <code>p0_world</code> had 0 displacement along the X, that should correspond to a value of 720 once projected onto the screen. Yay for 720!</p><p>The result is a 3D point that has been projection onto whatever screen you are viewing it from, in my case it was a phone screen.</p><p>Now the challenge is to to then take the point on the screen (or any point&mldr;at this point) and <em>go back</em> to 3D to see if it produces the original <code>p0</code>.</p><p>However, during the transformation to <strong>normalized device space</strong>, every element was divided by the <code>w</code> value of the vector (4th element). Then in the transformation to <strong>view port</strong>, the Z value was dropped because obviously there is no Z coordinate otherwise what the heck has all this been about.</p><p>So going back from 2D to 3D there is no unique solution. A more interesting exercise would be to ray cast from the 2D point caculated here, and to perform intersection/hit testing along this ray. Reference <a href=http://antongerdelan.net/opengl/raycasting.html>1</a> goes over this, and perhaps another journey through transformations is in order.</p><ul><li><p>Notes</p><ul><li><p>Vectors and points are represented by the notation <code>{nx, ny, nz, w}</code> where direction has <code>w = 0</code> and point has <code>w = 1</code>, or <code>{nx, ny, nz}</code></p></li><li><p>Starting from world space <code>{0, 0, 0}</code>, with camera at the origin, and some 3D point</p></li></ul></li></ul><h4 id=references>References</h4><p>[1] <a href=http://antongerdelan.net/opengl/raycasting.html>Mouse Picking with Ray Casting</a></p><p>[2] <a href=https://www.scratchapixel.com/lessons/3d-basic-rendering/computing-pixel-coordinates-of-3d-point/mathematics-computing-2d-coordinates-of-3d-points>Computing 2D Coordinates of a 3D Point</a></p><p>[3] <a href=http://webglfactory.blogspot.com/2011/05/how-to-convert-world-to-screen.html>Convert world to screen coordinates</a></p><p>[4] <a href="https://www.youtube.com/watch?v=VpNJbvZhNCQ">Perspective Projection</a></p><p>Thanks for reading, feel free to send concerns and criticisms to me on <a href=https://twitter.com/9erdelta>Twitter</a></p><a href=/>>> Home</a></main></div><footer><script>(function(){function center_el(tagName){var tags=document.getElementsByTagName(tagName),i,tag;for(i=0;i<tags.length;i++){tag=tags[i];var parent=tag.parentElement;if(parent.childNodes.length===1){if(parent.nodeName==='A'){parent=parent.parentElement;if(parent.childNodes.length!=1)continue;}
-if(parent.nodeName==='P')parent.style.textAlign='center';}}}
-var tagNames=['img','embed','object'];for(var i=0;i<tagNames.length;i++){center_el(tagNames[i]);}})();</script></footer></body></html>
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>Graphics Dev Journal 1 | Home</title>
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/style.css" />
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/fonts.css" />
+    <link rel="stylesheet" href="ninerdelta.github.io/css/theme-override.css">
+    <header>
+
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="ninerdelta.github.io/index.xml">~/rss</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Graphics Dev Journal 1</span></h1>
+
+<h2 class="date">2018/06/27</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/ninerdelta.github.io/categories/journal">Journal</a> <a href="/ninerdelta.github.io/categories/dev-journal">Dev Journal</a> 
+  
+  
+  
+  Tags: <a href="/ninerdelta.github.io/tags/graphics">Graphics</a> <a href="/ninerdelta.github.io/tags/math">Math</a> 
+  
+  
+</p>
+</div>
+
+
+<div class="content-wrapper">
+  <main>
+    <h2 id="a-journey-through-space-transformations">A Journey Through Space Transformations</h2>
+<p><em>NOTE: THIS POST CONTAINS MATH ERRORS (12/14/2020)</em></p>
+<p>Say the point <code>p0</code> is in <strong>object space</strong> and its coordinates are <code>{0, 2, 0, 1}</code>
+so just a point on the <code>Y axis</code>.</p>
+<p><code>p0</code> is placed in <strong>world space</strong> by a <strong>model</strong> transformation shown in <strong>Figure 1</strong>, that is, no rotation, just translated along <code>Z axis</code> by 5 units.</p>
+<p><img src="/images/figure1.jpg" alt="figure1"></p>
+<p>The camera is sitting at the origin of <strong>world space</strong> but &ldquo;looking&rdquo; down the <code>-Z axis</code>, so the camera&rsquo;s location in world space is <code>c0 = {0, 0, 0, 1}</code> and its coordinate system can be represented as shown in <strong>Figure 2</strong>, and then combining its location and coordinate system into <strong>view matrix</strong> also shown in <strong>Figure 2</strong></p>
+<p><img src="/images/figure2.jpg" alt="figure2"></p>
+<h5 id="note">Note:</h5>
+<p><code>This is not a very sophisticated camera placement. It could be placed in the world and made to look at some point using a lookAt transformation. But to simply show the steps, I chose an easy camera location and chose a point I knew would be within view of the camera</code></p>
+<p>To place <code>p0_world</code> (that is <code>p0</code> transformed by <strong>model</strong>), into <strong>view space</strong>, it looks like the following. Note the sign change on the <code>Z</code> component after transforming from <code>p0_world</code> to <code>p0_view</code>.</p>
+<p><img src="/images/figure3.jpg" alt="figure3"></p>
+<p>The next step is to put <code>p0_view</code> into projection space and to do that requires a <strong>projection matrix</strong>. Information about how projection matrices (in this case a perspective projection) are constructed can be found at reference <a href="https://www.youtube.com/watch?v=VpNJbvZhNCQ">4</a>. The required parameters are <strong>field of view (fov)</strong>, <strong>near plane (zNear)</strong>, and <strong>far plane (zFar)</strong>, as well as the viewing screen&rsquo;s width and height (more specifically <code>aspect ratio</code>). The <strong>projection matrix</strong> I came up with has the following parameters</p>
+<ul>
+<li>
+<p><code>fov</code> = 60 degrees</p>
+</li>
+<li>
+<p><code>aspect</code> = 16:9</p>
+</li>
+<li>
+<p><code>zNear</code> = 2</p>
+</li>
+<li>
+<p><code>zFar</code> = 100</p>
+</li>
+</ul>
+<p>Which produces the resulting matrix shown in <strong>Figure 4</strong></p>
+<ul>
+<li>
+<p>Notes</p>
+<ul>
+<li>Values have been rounded down to one significant figure</li>
+<li>I have been laying out matrices in <a href="https://en.wikipedia.org/wiki/Row-_and_column-major_order">row major order</a></li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/figure4.jpg" alt="figure4"></p>
+<p>Transforming to projection space, or <strong>homogeneous clip space</strong> <a href="(http://antongerdelan.net/opengl/raycasting.html)">1</a> is then accomplished by multiplying <code>p0_view</code> with the <strong>projection matrix</strong></p>
+<p><img src="/images/figure5.jpg" alt="figure5"></p>
+<p>In the next step, divide the elements of <code>p0_clip</code> by its 4th element to transform into <strong>normalized device space</strong> <a href="http://antongerdelan.net/opengl/raycasting.html">1</a>. This produces <code>p0_nds = {0.0, 0.7, 0.2, 1.0}</code></p>
+<p>Finally convert to rasterization or <strong>view port</strong> space, using the calculations shown in <strong>Figure 6</strong></p>
+<p><img src="/images/figure6.jpg" alt="figure6"></p>
+<p>Looking at the result in <strong>Figure  6</strong>, it makes sense that the X coordinate is 720, because essentially the camera is sitting at <code>{0, 0, 0}</code> in <strong>world space</strong>, which transforms to the center of the <strong>view port</strong> i.e. <code>{720, 1280}</code>. Since <code>p0_world</code> had 0 displacement along the X, that should correspond to a value of 720 once projected onto the screen. Yay for 720!</p>
+<p>The result is a 3D point that has been projection onto whatever screen you are viewing it from, in my case it was a phone screen.</p>
+<p>Now the challenge is to to then take the point on the screen (or any point&hellip;at this point) and <em>go back</em> to 3D to see if it produces the original <code>p0</code>.</p>
+<p>However, during the transformation to <strong>normalized device space</strong>, every element was divided by the <code>w</code> value of the vector (4th element). Then in the transformation to <strong>view port</strong>, the Z value was dropped because obviously there is no Z coordinate otherwise what the heck has all this been about.</p>
+<p>So going back from 2D to 3D there is no unique solution. A more interesting exercise would be to ray cast from the 2D point caculated here, and to perform intersection/hit testing along this ray. Reference <a href="http://antongerdelan.net/opengl/raycasting.html">1</a> goes over this, and perhaps another journey through transformations is in order.</p>
+<ul>
+<li>
+<p>Notes</p>
+<ul>
+<li>
+<p>Vectors and points are represented by the notation <code>{nx, ny, nz, w}</code> where direction has <code>w = 0</code> and point has <code>w = 1</code>, or <code>{nx, ny, nz}</code></p>
+</li>
+<li>
+<p>Starting from world space <code>{0, 0, 0}</code>, with camera at the origin, and some 3D point</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="references">References</h4>
+<p>[1] <a href="http://antongerdelan.net/opengl/raycasting.html">Mouse Picking with Ray Casting</a></p>
+<p>[2] <a href="https://www.scratchapixel.com/lessons/3d-basic-rendering/computing-pixel-coordinates-of-3d-point/mathematics-computing-2d-coordinates-of-3d-points">Computing 2D Coordinates of a 3D Point</a></p>
+<p>[3] <a href="http://webglfactory.blogspot.com/2011/05/how-to-convert-world-to-screen.html">Convert world to screen coordinates</a></p>
+<p>[4] <a href="https://www.youtube.com/watch?v=VpNJbvZhNCQ">Perspective Projection</a></p>
+<p>Thanks for reading, feel free to send concerns and criticisms to me on <a href="https://twitter.com/9erdelta">Twitter</a></p>
+
+    <a href="/"> >> Home</a>
+  </main>
+</div>
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+    </footer>
+    
+  </body>
+</html>
+

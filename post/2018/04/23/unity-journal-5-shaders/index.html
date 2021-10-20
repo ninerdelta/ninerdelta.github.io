@@ -1,4 +1,144 @@
-<!doctype html><html lang=en-us><head><link rel=stylesheet href=//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css><script src=//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js></script><script>hljs.initHighlightingOnLoad();</script><link rel=apple-touch-icon sizes=180x180 href=/images/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/images/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/images/favicon-16x16.png><link rel=manifest href=/images/site.webmanifest><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><title>Unity Journal 5 - shaders | Home</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><link rel=stylesheet href=https://ninerdelta.com/css/theme-override.css><header><nav><ul><li class=pull-left><a href=https://ninerdelta.com/>~/home</a></li><li class=pull-left><a href=/categories/>~/categories</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-right><a href=/index.xml>~/rss</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>Unity Journal 5 - shaders</span></h1><h2 class=date>2018/04/23</h2><p class=terms>Categories: <a href=/categories/journal>Journal</a> <a href=/categories/unity-journal>Unity Journal</a>
-Tags: <a href=/tags/unity>unity</a> <a href=/tags/shaders>shaders</a></p></div><div class=content-wrapper><main><p><a href=https://unity3d.com/learn/tutorials/topics/graphics/gentle-introduction-shaders>A Gentle Intro to Shaders</a></p><ul><li>General components in the Unity rendering workflow are models (vertex data), textures, and shaders</li><li>Support for surface as well as vertex + fragment shaders</li><li>Uses &ldquo;Unity-ized&rdquo; CG/HLSL (High-Level Shading Language)</li><li>Implements a &ldquo;tag Queue&rdquo; to provide some control over rendering order</li></ul><p><a href=http://catlikecoding.com/unity/tutorials/rendering/part-2/>Catlike Coding - Rendering Part 2</a></p><ul><li>Object is drawn if a portion of its bounding box lies within the view frustum of the camera</li><li>Shader is compiled per target platform, as each platform (e.g. Windows vs Android) uses a different graphics API (DirectX versus OpenGL although there are some exceptions)</li><li>Unity has some <a href=https://docs.unity3d.com/Manual/SL-BuiltinIncludes.html>predefined files</a> (such as UnityCG.cginc or UnityShaderVariables.cginc) that can be included in a custom shader</li><li>Vertex shader has to output a vertex, and Fragment shader has to output a color</li></ul><p><a href=https://eev.ee/blog/2016/05/29/perlin-noise/>Perlin Noise</a></p><ul><li>White noise is essentially pixels that are independent of each other, which is not very useful overall</li><li>Perlin noise can be created in many dimensions</li><li>Produces continuous and organic looking noise</li><li>Includes a concept of <em>octaves</em> in that additional noise can be added (with some modifications to the calculation) to the &ldquo;base&rdquo;</li></ul><p><a href=https://www.alanzucconi.com/2016/08/17/fractals-101/>Fractals 101</a></p><ul><li>A shape that has infinite detail, sometimes self-similar i.e. zooming in reveals the same shape</li><li>In some cases these shapes can be created through significant (infinite really, but for computing have to limit to significant) iterations of a process</li><li>Fractal dimension is not a whole number like 2D or 3D</li><li>There are various approaches to measuring fractal dimension, such as <a href=https://en.wikipedia.org/wiki/Hausdorff_dimension>Hausdorff dimension</a></li></ul><p><a href=http://developer.download.nvidia.com/CgTutorial/cg_tutorial_chapter01.html>Book - CG Tutorial</a></p><p><a href=https://en.wikibooks.org/wiki/Cg_Programming/Unity>Book - CG Programming in Unity</a></p><p><a href=https://github.com/terkelg/awesome-creative-coding>Repo - awesome creative coding</a></p><a href=/>>> Home</a></main></div><footer><script>(function(){function center_el(tagName){var tags=document.getElementsByTagName(tagName),i,tag;for(i=0;i<tags.length;i++){tag=tags[i];var parent=tag.parentElement;if(parent.childNodes.length===1){if(parent.nodeName==='A'){parent=parent.parentElement;if(parent.childNodes.length!=1)continue;}
-if(parent.nodeName==='P')parent.style.textAlign='center';}}}
-var tagNames=['img','embed','object'];for(var i=0;i<tagNames.length;i++){center_el(tagNames[i]);}})();</script></footer></body></html>
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>Unity Journal 5 - shaders | Home</title>
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/style.css" />
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/fonts.css" />
+    <link rel="stylesheet" href="ninerdelta.github.io/css/theme-override.css">
+    <header>
+
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="ninerdelta.github.io/index.xml">~/rss</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Unity Journal 5 - shaders</span></h1>
+
+<h2 class="date">2018/04/23</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/ninerdelta.github.io/categories/journal">Journal</a> <a href="/ninerdelta.github.io/categories/unity-journal">Unity Journal</a> 
+  
+  
+  
+  Tags: <a href="/ninerdelta.github.io/tags/unity">unity</a> <a href="/ninerdelta.github.io/tags/shaders">shaders</a> 
+  
+  
+</p>
+</div>
+
+
+<div class="content-wrapper">
+  <main>
+    <p><a href="https://unity3d.com/learn/tutorials/topics/graphics/gentle-introduction-shaders">A Gentle Intro to Shaders</a></p>
+<ul>
+<li>General components in the Unity rendering workflow are models (vertex data), textures, and shaders</li>
+<li>Support for surface as well as vertex + fragment shaders</li>
+<li>Uses &ldquo;Unity-ized&rdquo; CG/HLSL (High-Level Shading Language)</li>
+<li>Implements a &ldquo;tag Queue&rdquo; to provide some control over rendering order</li>
+</ul>
+<p><a href="http://catlikecoding.com/unity/tutorials/rendering/part-2/">Catlike Coding - Rendering Part 2</a></p>
+<ul>
+<li>Object is drawn if a portion of its bounding box lies within the view frustum of the camera</li>
+<li>Shader is compiled per target platform, as each platform (e.g. Windows vs Android) uses a different graphics API (DirectX versus OpenGL although there are some exceptions)</li>
+<li>Unity has some <a href="https://docs.unity3d.com/Manual/SL-BuiltinIncludes.html">predefined files</a> (such as UnityCG.cginc or UnityShaderVariables.cginc) that can be included in a custom shader</li>
+<li>Vertex shader has to output a vertex, and Fragment shader has to output a color</li>
+</ul>
+<p><a href="https://eev.ee/blog/2016/05/29/perlin-noise/">Perlin Noise</a></p>
+<ul>
+<li>White noise is essentially pixels that are independent of each other, which is not very useful overall</li>
+<li>Perlin noise can be created in many dimensions</li>
+<li>Produces continuous and organic looking noise</li>
+<li>Includes a concept of <em>octaves</em> in that additional noise can be added (with some modifications to the calculation) to the &ldquo;base&rdquo;</li>
+</ul>
+<p><a href="https://www.alanzucconi.com/2016/08/17/fractals-101/">Fractals 101</a></p>
+<ul>
+<li>A shape that has infinite detail, sometimes self-similar i.e. zooming in reveals the same shape</li>
+<li>In some cases these shapes can be created through significant (infinite really, but for computing have to limit to significant) iterations of a process</li>
+<li>Fractal dimension is not a whole number like 2D or 3D</li>
+<li>There are various approaches to measuring fractal dimension, such as <a href="https://en.wikipedia.org/wiki/Hausdorff_dimension">Hausdorff dimension</a></li>
+</ul>
+<p><a href="http://developer.download.nvidia.com/CgTutorial/cg_tutorial_chapter01.html">Book - CG Tutorial</a></p>
+<p><a href="https://en.wikibooks.org/wiki/Cg_Programming/Unity">Book - CG Programming in Unity</a></p>
+<p><a href="https://github.com/terkelg/awesome-creative-coding">Repo - awesome creative coding</a></p>
+
+    <a href="/"> >> Home</a>
+  </main>
+</div>
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+    </footer>
+    
+  </body>
+</html>
+

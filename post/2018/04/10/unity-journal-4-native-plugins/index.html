@@ -1,4 +1,138 @@
-<!doctype html><html lang=en-us><head><link rel=stylesheet href=//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css><script src=//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js></script><script>hljs.initHighlightingOnLoad();</script><link rel=apple-touch-icon sizes=180x180 href=/images/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/images/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/images/favicon-16x16.png><link rel=manifest href=/images/site.webmanifest><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><title>Unity Journal 4 - native plugins | Home</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><link rel=stylesheet href=https://ninerdelta.com/css/theme-override.css><header><nav><ul><li class=pull-left><a href=https://ninerdelta.com/>~/home</a></li><li class=pull-left><a href=/categories/>~/categories</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-right><a href=/index.xml>~/rss</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>Unity Journal 4 - native plugins</span></h1><h2 class=date>2018/04/10</h2><p class=terms>Categories: <a href=/categories/journal>Journal</a> <a href=/categories/unity-journal>Unity Journal</a>
-Tags: <a href=/tags/unity>Unity</a> <a href=/tags/plugins>plugins</a></p></div><div class=content-wrapper><main><p><a href=https://medium.com/@rolir00li/integrating-native-ios-code-into-unity-e844a6131c21>Integrating Native iOS code</a></p><ul><li>Create bridge in C</li><li>Build as framework</li><li>Unity C# calls into bridge code</li><li>Pass C# delegate to C as function pointer, allows native to call into C# w/o UnitySendMessage</li></ul><p><a href=https://jacksondunstan.com/articles/3938>C++ Scripting - part 1</a></p><ul><li>Hooks from C++ into C# via <code>Marshal.GetFunctionPointerForDelegate</code></li><li>Handles to managed types (e.g. GameObject) enables more sophisticated usage</li><li>In a way, Unity/C# becomes implementation of a C++ interface</li></ul><p><a href=https://gravityjack.com/news/native-ui-overlay-for-unity-mobile-tutorials-part-2-android/>Native UI Overlay for Unity (Android)</a></p><ul><li>Create desired UI in a fragment</li><li>Build as library (.aar)</li><li>Include library in Unity as a plugin</li></ul><p><a href=http://eppz.eu/blog/unity-android-plugin-tutorial-1/>Plugin tutorial (Unity Android - part 1)</a></p><ul><li>Create UI / plugin code in a fragment</li><li>DO NOT extend UnityPlayerActivity because this could interfere with other plugins</li><li>Using singleton pattern can enable C# code to easily get a reference to the plugin</li></ul><a href=/>>> Home</a></main></div><footer><script>(function(){function center_el(tagName){var tags=document.getElementsByTagName(tagName),i,tag;for(i=0;i<tags.length;i++){tag=tags[i];var parent=tag.parentElement;if(parent.childNodes.length===1){if(parent.nodeName==='A'){parent=parent.parentElement;if(parent.childNodes.length!=1)continue;}
-if(parent.nodeName==='P')parent.style.textAlign='center';}}}
-var tagNames=['img','embed','object'];for(var i=0;i<tagNames.length;i++){center_el(tagNames[i]);}})();</script></footer></body></html>
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>Unity Journal 4 - native plugins | Home</title>
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/style.css" />
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/fonts.css" />
+    <link rel="stylesheet" href="ninerdelta.github.io/css/theme-override.css">
+    <header>
+
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="ninerdelta.github.io/index.xml">~/rss</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Unity Journal 4 - native plugins</span></h1>
+
+<h2 class="date">2018/04/10</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/ninerdelta.github.io/categories/journal">Journal</a> <a href="/ninerdelta.github.io/categories/unity-journal">Unity Journal</a> 
+  
+  
+  
+  Tags: <a href="/ninerdelta.github.io/tags/unity">Unity</a> <a href="/ninerdelta.github.io/tags/plugins">plugins</a> 
+  
+  
+</p>
+</div>
+
+
+<div class="content-wrapper">
+  <main>
+    <p><a href="https://medium.com/@rolir00li/integrating-native-ios-code-into-unity-e844a6131c21">Integrating Native iOS code</a></p>
+<ul>
+<li>Create bridge in C</li>
+<li>Build as framework</li>
+<li>Unity C# calls into bridge code</li>
+<li>Pass C# delegate to C as function pointer, allows native to call into C# w/o UnitySendMessage</li>
+</ul>
+<p><a href="https://jacksondunstan.com/articles/3938">C++ Scripting - part 1</a></p>
+<ul>
+<li>Hooks from C++ into C# via <code>Marshal.GetFunctionPointerForDelegate</code></li>
+<li>Handles to managed types (e.g. GameObject) enables more sophisticated usage</li>
+<li>In a way, Unity/C# becomes implementation of a C++ interface</li>
+</ul>
+<p><a href="https://gravityjack.com/news/native-ui-overlay-for-unity-mobile-tutorials-part-2-android/">Native UI Overlay for Unity (Android)</a></p>
+<ul>
+<li>Create desired UI in a fragment</li>
+<li>Build as library (.aar)</li>
+<li>Include library in Unity as a plugin</li>
+</ul>
+<p><a href="http://eppz.eu/blog/unity-android-plugin-tutorial-1/">Plugin tutorial (Unity Android - part 1)</a></p>
+<ul>
+<li>Create UI / plugin code in a fragment</li>
+<li>DO NOT extend UnityPlayerActivity because this could interfere with other plugins</li>
+<li>Using singleton pattern can enable C# code to easily get a reference to the plugin</li>
+</ul>
+
+    <a href="/"> >> Home</a>
+  </main>
+</div>
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+    </footer>
+    
+  </body>
+</html>
+

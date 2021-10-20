@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Investigating Microsoft implementation of std::thread constructor">
+    <title>Deep (ish) Dive into Microsoft std::thread Constructor Implementation | Home</title>
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/style.css" />
+    <link rel="stylesheet" href="/ninerdelta.github.io/css/fonts.css" />
+    <link rel="stylesheet" href="ninerdelta.github.io/css/theme-override.css">
+    <header>
+
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="ninerdelta.github.io/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="ninerdelta.github.io/index.xml">~/rss</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Deep (ish) Dive into Microsoft std::thread Constructor Implementation</span></h1>
+
+<h2 class="date">2021/10/20</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/ninerdelta.github.io/categories/journal">Journal</a> <a href="/ninerdelta.github.io/categories/c&#43;&#43;">C&#43;&#43;</a> <a href="/ninerdelta.github.io/categories/multithreading">Multithreading</a> 
+  
+  
+  
+  
+</p>
+</div>
+
+
+<div class="content-wrapper">
+  <main>
+    <h2 id="introduction">Introduction</h2>
+<p>As of C++11 the STL defines a thread class. Most documentation and examples I&rsquo;ve found cover usage pretty well, but leave deeper understanding as an exercise to the reader. So that&rsquo;s the goal of this discussion.</p>
+<p>The following discussion assumes a basic understanding of std::thread as documented <a href="https://en.cppreference.com/w/cpp/thread/thread">here</a> or <a href="https://www.geeksforgeeks.org/multithreading-in-cpp/">here</a>.</p>
+<p>While using std::thread, eventually you will need to do something similar to <em>example 1</em> (pass a parameter to a function by reference).</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 1
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">void</span> <span style="color:#75af00">func</span><span style="color:#111">(</span><span style="color:#00a8c8">int</span> <span style="color:#f92672">&amp;</span><span style="color:#111">a</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+	<span style="color:#111">a</span><span style="color:#f92672">++</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+
+
+<span style="color:#00a8c8">int</span> <span style="color:#75af00">main</span><span style="color:#111">()</span>
+<span style="color:#111">{</span>
+	<span style="color:#00a8c8">int</span> <span style="color:#111">a</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
+	<span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#00a8c8">thread</span> <span style="color:#111">t</span><span style="color:#111">(</span><span style="color:#111">func</span><span style="color:#111">,</span> <span style="color:#111">a</span><span style="color:#111">);</span>
+	
+	<span style="color:#111">t</span><span style="color:#111">.</span><span style="color:#111">join</span><span style="color:#111">();</span>
+	
+	<span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">cout</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">a</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">endl</span><span style="color:#111">;</span>
+	
+	
+	<span style="color:#00a8c8">return</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+</code></pre></div><p>In the non-threading case such as <em>example 2</em> we expect to print out a value of 1. But in the case <em>example 1</em> with threading, you might be surprised to see that 0 is printed out.</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 2
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">void</span> <span style="color:#75af00">func</span><span style="color:#111">(</span><span style="color:#00a8c8">int</span> <span style="color:#f92672">&amp;</span><span style="color:#111">a</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+	<span style="color:#111">a</span><span style="color:#f92672">++</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+
+<span style="color:#00a8c8">int</span> <span style="color:#75af00">main</span><span style="color:#111">()</span>
+<span style="color:#111">{</span>
+	<span style="color:#00a8c8">int</span> <span style="color:#111">a</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
+	
+	<span style="color:#111">func</span><span style="color:#111">(</span><span style="color:#111">a</span><span style="color:#111">);</span>
+	
+	<span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">cout</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">a</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">endl</span><span style="color:#111">;</span>
+	
+	
+	<span style="color:#00a8c8">return</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+</code></pre></div><p>Most explanations will just mention that you need to use <code>std::ref</code> because in <em>example 1</em> what is happening is that a reference to a local copy of <code>a</code> is what is being passed to <code>func</code> on the thread.</p>
+<p>But why is a local copy of <code>a</code> being used? And why does <code>std::ref</code> stop a local copy from being used? Finding these answers is the purpose of the following discussion.</p>
+<h2 id="stdthread-constructor-implementation">std::thread Constructor Implementation</h2>
+<p>Fortunately the Microsoft implementation of the STL is available <a href="https://github.com/microsoft/STL">on GitHub</a> so it is possible to see exactly is going on.</p>
+<p>The std::thread constructor can be found <a href="https://github.com/microsoft/STL/blob/main/stl/inc/thread#:~:text=template%20%3Cclass%20_Fn%2C%20class...%20_Args%2C%20enable_if_t%3C!is_same_v%3C_Remove_cvref_t,%7D">here</a> and part of it is shown in <em>sample 1</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#75715e">// Sample 1
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">template</span> <span style="color:#f92672">&lt;</span><span style="color:#00a8c8">class</span> <span style="color:#75af00">_Fn</span><span style="color:#111">,</span> <span style="color:#00a8c8">class</span><span style="color:#960050;background-color:#1e0010">... </span><span style="color:#75af00">_Args</span><span style="color:#111">,</span> <span style="color:#111">enable_if_t</span><span style="color:#f92672">&lt;!</span><span style="color:#111">is_same_v</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Remove_cvref_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">,</span> <span style="color:#00a8c8">thread</span><span style="color:#f92672">&gt;</span><span style="color:#111">,</span> <span style="color:#00a8c8">int</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">&gt;</span>
+
+ <span style="color:#111">_NODISCARD_CTOR</span> <span style="color:#00a8c8">explicit</span> <span style="color:#00a8c8">thread</span><span style="color:#111">(</span><span style="color:#111">_Fn</span><span style="color:#f92672">&amp;&amp;</span> <span style="color:#111">_Fx</span><span style="color:#111">,</span> <span style="color:#111">_Args</span><span style="color:#f92672">&amp;&amp;</span><span style="color:#111">...</span> <span style="color:#111">_Ax</span><span style="color:#111">)</span>
+ <span style="color:#111">{</span>
+ 	<span style="color:#111">_Start</span><span style="color:#111">(</span><span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Fx</span><span style="color:#111">),</span> <span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Args</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Ax</span><span style="color:#111">)...);</span>
+	
+	
+	<span style="color:#75715e">// snip...
+</span><span style="color:#75715e"></span> <span style="color:#111">}</span>
+</code></pre></div><p>Ignoring all the stuff going on with the template, there are a few things to look at with the constructor parameters <code>_FN&amp;&amp; _Fx</code> and <code>_Args&amp;&amp;... _Ax</code>.</p>
+<h3 id="rvalue-reference">Rvalue Reference</h3>
+<p>What is <code>&amp;&amp;</code>? It is the declarator for an rvalue reference.</p>
+<p>Deep diving on value categories (rvalues and lvalues) is out of scope but here are some good references on the subject.</p>
+<ul>
+<li>
+<p><a href="https://www.youtube.com/watch?v=XS2JddPq7GQ">CppCon 2019:Ben Saks “Back to Basics: Understanding Value Categories”</a></p>
+</li>
+<li>
+<p><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n2027.html">A Brief Introduction to Rvalue References</a></p>
+</li>
+<li>
+<p><a href="https://en.cppreference.com/w/cpp/language/reference">Reference declaration</a></p>
+</li>
+<li>
+<p><a href="http://thbecker.net/articles/rvalue_references/section_01.html">C++ Rvalue References Explained</a></p>
+</li>
+</ul>
+<p>The general idea is that in C++ we have the lvalue reference <code>&amp;</code>, and the rvalue reference <code>&amp;&amp;</code>.</p>
+<p>Looking at <em>example 3</em>, the literal <code>5</code> is an rvalue since it is unnamed. But also <code>result</code> is an rvalue because although it is named, it is temporary.</p>
+<p><code>b</code> and <code>c</code> are tricky because in scope of <code>func</code> they are lvalues&hellip;we know they are temporary to the scope of the function and so in a way they are rvalues&hellip;this is an &ldquo;expiring&rdquo; value which is totally tangential to this discussion so not going to look at that any farther.</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 3
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">int</span> <span style="color:#111">a</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span><span style="color:#111">;</span>
+
+<span style="color:#00a8c8">void</span> <span style="color:#75af00">func</span><span style="color:#111">(</span><span style="color:#00a8c8">int</span> <span style="color:#111">b</span><span style="color:#111">,</span> <span style="color:#00a8c8">int</span> <span style="color:#111">c</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+	<span style="color:#00a8c8">int</span> <span style="color:#111">result</span> <span style="color:#f92672">=</span> <span style="color:#111">b</span> <span style="color:#f92672">+</span> <span style="color:#111">c</span><span style="color:#111">;</span>
+	<span style="color:#00a8c8">return</span> <span style="color:#111">result</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+
+</code></pre></div><p>We experience the difference in lvalues and rvalues when we have a function such as the one in <em>example 4</em>, and try to use it in the ways shown in <em>example 5</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 4
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">void</span> <span style="color:#75af00">func</span><span style="color:#111">(</span><span style="color:#00a8c8">int</span> <span style="color:#f92672">&amp;</span><span style="color:#111">a</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+	<span style="color:#75715e">// do stuff
+</span><span style="color:#75715e"></span><span style="color:#111">}</span>
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 5
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">int</span> <span style="color:#75af00">sum</span><span style="color:#111">(</span><span style="color:#00a8c8">int</span> <span style="color:#111">a</span><span style="color:#111">,</span> <span style="color:#00a8c8">int</span> <span style="color:#111">b</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+	<span style="color:#00a8c8">return</span> <span style="color:#111">a</span> <span style="color:#f92672">+</span> <span style="color:#111">b</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+
+<span style="color:#75715e">// usage 1
+</span><span style="color:#75715e"></span><span style="color:#111">func</span><span style="color:#111">(</span><span style="color:#ae81ff">10</span><span style="color:#111">);</span>
+
+<span style="color:#75715e">// usage 2
+</span><span style="color:#75715e"></span><span style="color:#111">func</span><span style="color:#111">(</span><span style="color:#111">sum</span><span style="color:#111">(</span><span style="color:#ae81ff">10</span><span style="color:#111">,</span> <span style="color:#ae81ff">5</span><span style="color:#111">));</span>
+</code></pre></div><p>Both <em>usage 1</em> and <em>usage 2</em> are attempting to pass rvalues to a function that takes an lvalue reference.</p>
+<p>Technically the usages shown in <em>example 5</em> would work if <code>func</code> was defined as in <em>example 6</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 6
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">void</span> <span style="color:#75af00">func</span><span style="color:#111">(</span><span style="color:#00a8c8">const</span> <span style="color:#00a8c8">int</span> <span style="color:#f92672">&amp;</span><span style="color:#111">a</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+	<span style="color:#75715e">// do stuff
+</span><span style="color:#75715e"></span><span style="color:#111">}</span>
+</code></pre></div><p>BUT, what if <code>func</code> could take rvalue references? In fact it can by using <code>&amp;&amp;</code> (<em>example 7</em>). Then <em>usage 1</em> and <em>2</em> as shown in <em>example 8</em> work, but <em>usage 3</em> does not 😞.</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 7
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">void</span> <span style="color:#75af00">func</span><span style="color:#111">(</span><span style="color:#00a8c8">int</span> <span style="color:#f92672">&amp;&amp;</span><span style="color:#111">a</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+	<span style="color:#75715e">// do stuff
+</span><span style="color:#75715e"></span><span style="color:#111">}</span>
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 8
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">int</span> <span style="color:#75af00">sum</span><span style="color:#111">(</span><span style="color:#00a8c8">int</span> <span style="color:#111">a</span><span style="color:#111">,</span> <span style="color:#00a8c8">int</span> <span style="color:#111">b</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+	<span style="color:#00a8c8">return</span> <span style="color:#111">a</span> <span style="color:#f92672">+</span> <span style="color:#111">b</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+
+<span style="color:#75715e">// usage 1
+</span><span style="color:#75715e"></span><span style="color:#111">func</span><span style="color:#111">(</span><span style="color:#ae81ff">10</span><span style="color:#111">);</span>
+
+<span style="color:#75715e">// usage 2
+</span><span style="color:#75715e"></span><span style="color:#111">func</span><span style="color:#111">(</span><span style="color:#111">sum</span><span style="color:#111">(</span><span style="color:#ae81ff">10</span><span style="color:#111">,</span> <span style="color:#ae81ff">5</span><span style="color:#111">));</span>
+
+<span style="color:#75715e">// usage 3
+</span><span style="color:#75715e"></span><span style="color:#00a8c8">int</span> <span style="color:#111">c</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span><span style="color:#111">;</span>
+<span style="color:#111">func</span><span style="color:#111">(</span><span style="color:#111">c</span><span style="color:#111">);</span>
+</code></pre></div><p>Ok so where is this going? Well, we know that the std::thread constructor takes a callable object such as a function, and there are no limitations on that function such as, &ldquo;must take lvalues only&rdquo; or anything like that. We also don&rsquo;t really have to use wonky syntax. But we just saw some examples showing that there are complications between defining a function that takes lvalue references versus one that takes rvalue references. How does std::thread deal with this? Enter Type-Deducing Context.</p>
+<h3 id="type-deducing-context">Type-Deducing Context</h3>
+<p>This is the part where we can no longer ignore the template part (is there a proper name for &ldquo;template part?&quot;) of the std::thread constructor.</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#00a8c8">template</span> <span style="color:#f92672">&lt;</span><span style="color:#00a8c8">class</span> <span style="color:#75af00">_Fn</span><span style="color:#111">,</span> <span style="color:#00a8c8">class</span><span style="color:#960050;background-color:#1e0010">... </span><span style="color:#75af00">_Args</span><span style="color:#111">,</span> <span style="color:#111">enable_if_t</span><span style="color:#f92672">&lt;!</span><span style="color:#111">is_same_v</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Remove_cvref_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">,</span> <span style="color:#00a8c8">thread</span><span style="color:#f92672">&gt;</span><span style="color:#111">,</span> <span style="color:#00a8c8">int</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">&gt;</span>
+<span style="color:#111">_NODISCARD_CTOR</span> <span style="color:#00a8c8">explicit</span> <span style="color:#00a8c8">thread</span><span style="color:#111">(</span><span style="color:#111">_Fn</span><span style="color:#f92672">&amp;&amp;</span> <span style="color:#111">_Fx</span><span style="color:#111">,</span> <span style="color:#111">_Args</span><span style="color:#f92672">&amp;&amp;</span><span style="color:#111">...</span> <span style="color:#111">_Ax</span><span style="color:#111">)</span>
+
+<span style="color:#75715e">// snip
+</span></code></pre></div><p>Aside from this being a template, it is called a &ldquo;type-deducing context&rdquo; and so <code>_Fn&amp;&amp;</code> and <code>_Args&amp;&amp;</code> take on special meaning.</p>
+<p><a href="https://eli.thegreenplace.net/2014/perfect-forwarding-and-universal-references-in-c/">Perfect Forwarding and Universal References in C++</a></p>
+<blockquote>
+<p>In a type-deducing context, <code>T&amp;&amp;</code> acquires a special meaning. When <code>func</code> is instantiated, <code>T</code> depends on whether the argument passed to <code>func</code> is an lvalue or an rvalue.</p>
+</blockquote>
+<p>If we re-wrote our function <code>func</code> as in <em>example 9</em>, now it works for all 3 usages we&rsquo;ve looked at.</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 9
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">template</span><span style="color:#f92672">&lt;</span><span style="color:#00a8c8">typename</span> <span style="color:#111">T</span><span style="color:#f92672">&gt;</span>
+<span style="color:#00a8c8">void</span> <span style="color:#111">func</span><span style="color:#111">(</span><span style="color:#111">T</span><span style="color:#f92672">&amp;&amp;</span> <span style="color:#111">a</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+	<span style="color:#75715e">// do stuff
+</span><span style="color:#75715e"></span><span style="color:#111">}</span>
+
+
+<span style="color:#00a8c8">int</span> <span style="color:#75af00">sum</span><span style="color:#111">(</span><span style="color:#00a8c8">int</span> <span style="color:#111">a</span><span style="color:#111">,</span> <span style="color:#00a8c8">int</span> <span style="color:#111">b</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+	<span style="color:#00a8c8">return</span> <span style="color:#111">a</span> <span style="color:#f92672">+</span> <span style="color:#111">b</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+
+<span style="color:#75715e">// (1)
+</span><span style="color:#75715e"></span><span style="color:#111">func</span><span style="color:#111">(</span><span style="color:#ae81ff">10</span><span style="color:#111">);</span>
+
+<span style="color:#75715e">// (2)
+</span><span style="color:#75715e"></span><span style="color:#111">func</span><span style="color:#111">(</span><span style="color:#111">sum</span><span style="color:#111">(</span><span style="color:#ae81ff">10</span><span style="color:#111">,</span> <span style="color:#ae81ff">5</span><span style="color:#111">));</span>
+
+<span style="color:#75715e">// (3)
+</span><span style="color:#75715e"></span><span style="color:#00a8c8">int</span> <span style="color:#111">c</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span><span style="color:#111">;</span>
+</code></pre></div><p>One other aspect of the template that we need to look at is the use of an ellpsis <code>...</code>, which indicates that this is a variadic template.</p>
+<p><a href="https://en.wiktionary.org/wiki/variadic">Variadic</a></p>
+<blockquote>
+<p>Taking a variable number of arguments; <em>especially</em>, taking arbitrarily many arguments</p>
+</blockquote>
+<p>The variadic-ness of std::thread is pretty clear. It accounts for why we don&rsquo;t specifically have to tell std::thread how many arguments are being passed to use with the callable object, it just works.</p>
+<h3 id="variadic-templates">Variadic Templates</h3>
+<p>The constructor of std::thread being a variadic template is an important piece of the puzzle, as described in, <a href="https://www.amazon.com/dp/0321563840/ref=cm_sw_r_tw_dp_T6261GSQYQS588FW0W6G"><em>The C++ Programming Language</em> 4th ed.</a></p>
+<blockquote>
+<p>The thread constructors are variadic templates. This implies that to pass a reference to a thread constructor, we must use a reference wrapper&hellip;</p>
+</blockquote>
+<p>What is the relationship between a variadic template and needing to use a reference wrapper?</p>
+<p>Again from <em>The C++ Programming Language 4th ed.</em></p>
+<blockquote>
+<p>The problem is that the variadic template uses <code>bind()</code> or some equivalent mechanism, so that a reference is by default dereferenced and the result copied.</p>
+</blockquote>
+<p>Ah ha, now we are getting somewhere. But we&rsquo;re not going to look at std::bind yet. We&rsquo;re going to look for &ldquo;some equivalent mechanism&rdquo; in the the std::thread constructor.</p>
+<h3 id="some-equivalent-mechanism">Some Equivalent Mechanism</h3>
+<p>To find what we&rsquo;re looking for, we have to dig into the implementation of <code>_Start</code> from <em>sample 1</em>.</p>
+<p>The part of <code>_Start</code> that we&rsquo;re interested in is shown in <em>sample 2</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Sample 2
+</span><span style="color:#75715e"></span>
+ <span style="color:#00a8c8">template</span> <span style="color:#f92672">&lt;</span><span style="color:#00a8c8">class</span> <span style="color:#75af00">_Fn</span><span style="color:#111">,</span> <span style="color:#00a8c8">class</span><span style="color:#960050;background-color:#1e0010">... </span><span style="color:#75af00">_Args</span><span style="color:#f92672">&gt;</span>
+
+ <span style="color:#00a8c8">void</span> <span style="color:#111">_Start</span><span style="color:#111">(</span><span style="color:#111">_Fn</span><span style="color:#f92672">&amp;&amp;</span> <span style="color:#111">_Fx</span><span style="color:#111">,</span> <span style="color:#111">_Args</span><span style="color:#f92672">&amp;&amp;</span><span style="color:#111">...</span> <span style="color:#111">_Ax</span><span style="color:#111">)</span>
+ <span style="color:#111">{</span>
+    <span style="color:#75715e">// line (1)
+</span><span style="color:#75715e"></span> 	<span style="color:#00a8c8">using</span> <span style="color:#111">_Tuple</span> <span style="color:#f92672">=</span> <span style="color:#111">tuple</span><span style="color:#f92672">&lt;</span><span style="color:#111">decay_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">,</span> <span style="color:#111">decay_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Args</span><span style="color:#f92672">&gt;</span><span style="color:#111">...</span><span style="color:#f92672">&gt;</span><span style="color:#111">;</span>
+	
+	<span style="color:#75715e">// line (2)
+</span><span style="color:#75715e"></span> 	<span style="color:#00a8c8">auto</span> <span style="color:#111">_Decay_copied</span> <span style="color:#f92672">=</span> <span style="color:#111">_STD</span> <span style="color:#111">make_unique</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Tuple</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Fx</span><span style="color:#111">),</span>
+	                                              <span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Args</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Ax</span><span style="color:#111">)...);</span>
+												  
+	<span style="color:#75715e">// line (3)
+</span><span style="color:#75715e"></span>	<span style="color:#00a8c8">constexpr</span> <span style="color:#00a8c8">auto</span> <span style="color:#111">_Invoker_proc</span> <span style="color:#f92672">=</span> 
+		<span style="color:#111">_Get_invoke</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Tuple</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">make_index_sequence</span><span style="color:#f92672">&lt;</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">+</span><span style="color:#00a8c8">sizeof</span><span style="color:#111">...(</span><span style="color:#111">_Args</span><span style="color:#111">)</span><span style="color:#f92672">&gt;</span><span style="color:#111">{});</span>
+ 
+	<span style="color:#75715e">// snip ...
+</span><span style="color:#75715e"></span><span style="color:#111">}</span>
+</code></pre></div><p>There are 2 key pieces here to understand, std::decay and std::make_unique.</p>
+<h4 id="stddecayhttpsencppreferencecomwcpptypesdecay"><a href="https://en.cppreference.com/w/cpp/types/decay">std::decay</a></h4>
+<blockquote>
+<p>Applies lvalue-to-rvalue, array-to-pointer, and function-to-pointer implicit conversions to the type <code>T</code>, removes cv-qualifiers, and defines the resulting type as the member typedef <code>type</code>.</p>
+</blockquote>
+<p>Or a bit more useful description from <a href="https://docs.microsoft.com/en-us/cpp/standard-library/decay-class?view=msvc-160">Microsoft docs</a></p>
+<blockquote>
+<p>Produces the type as passed by value. Makes the type non-reference, non-const, non-volatile, or makes a pointer to the type from a function or an array type.</p>
+</blockquote>
+<p>In <em>sample 3</em>, the implementation is defining <code>_Tuple</code> with the type decay of <code>_Fn</code>   and <code>_Args</code>, which in the case of <code>_Args</code> means the dereferenced type. That is, if one of the <code>_Args</code> is a reference to an int, <code>&amp;int</code>, its type decay is <code>int</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Sample 3
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">using</span> <span style="color:#111">_Tuple</span> <span style="color:#f92672">=</span> <span style="color:#111">tuple</span><span style="color:#f92672">&lt;</span><span style="color:#111">decay_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">,</span> <span style="color:#111">decay_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Args</span><span style="color:#f92672">&gt;</span><span style="color:#111">...</span><span style="color:#f92672">&gt;</span><span style="color:#111">;</span>
+</code></pre></div><p>As an experiment I ran the code in <em>example 10</em> to construct a tuple with and without type decay.</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 10
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;iostream&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;tuple&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">void</span> <span style="color:#75af00">add_things</span><span style="color:#111">(</span><span style="color:#00a8c8">int</span> <span style="color:#f92672">&amp;</span><span style="color:#111">a</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+    <span style="color:#75715e">// do stuff
+</span><span style="color:#75715e"></span><span style="color:#111">}</span>
+
+<span style="color:#00a8c8">template</span> <span style="color:#f92672">&lt;</span><span style="color:#00a8c8">class</span> <span style="color:#75af00">_Ty</span><span style="color:#f92672">&gt;</span>
+<span style="color:#00a8c8">using</span> <span style="color:#111">decay_t</span> <span style="color:#f92672">=</span> <span style="color:#00a8c8">typename</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">decay</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Ty</span><span style="color:#f92672">&gt;::</span><span style="color:#111">type</span><span style="color:#111">;</span>
+
+<span style="color:#00a8c8">template</span> <span style="color:#f92672">&lt;</span><span style="color:#00a8c8">typename</span> <span style="color:#111">_Fn</span><span style="color:#111">,</span> <span style="color:#00a8c8">typename</span> <span style="color:#111">_Arg</span><span style="color:#f92672">&gt;</span>
+<span style="color:#00a8c8">void</span> <span style="color:#111">do_stuff_wo_decay</span><span style="color:#111">(</span><span style="color:#111">_Fn</span> <span style="color:#f92672">&amp;&amp;</span><span style="color:#111">fn</span><span style="color:#111">,</span> <span style="color:#111">_Arg</span> <span style="color:#f92672">&amp;&amp;</span><span style="color:#111">arg</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+    <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">tuple</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#111">,</span> <span style="color:#111">_Arg</span><span style="color:#f92672">&gt;</span> <span style="color:#111">foo</span><span style="color:#111">(</span><span style="color:#111">fn</span><span style="color:#111">,</span> <span style="color:#111">arg</span><span style="color:#111">);</span>
+<span style="color:#111">}</span>
+
+<span style="color:#00a8c8">template</span> <span style="color:#f92672">&lt;</span><span style="color:#00a8c8">typename</span> <span style="color:#111">_Fn</span><span style="color:#111">,</span> <span style="color:#00a8c8">typename</span> <span style="color:#111">_Arg</span><span style="color:#f92672">&gt;</span>
+<span style="color:#00a8c8">void</span> <span style="color:#111">do_stuff_w_decay</span><span style="color:#111">(</span><span style="color:#111">_Fn</span> <span style="color:#f92672">&amp;&amp;</span><span style="color:#111">fn</span><span style="color:#111">,</span> <span style="color:#111">_Arg</span> <span style="color:#f92672">&amp;&amp;</span><span style="color:#111">arg</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+    <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">tuple</span><span style="color:#f92672">&lt;</span><span style="color:#111">decay_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">,</span> <span style="color:#111">decay_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Arg</span><span style="color:#f92672">&gt;&gt;</span> <span style="color:#111">foo</span><span style="color:#111">(</span><span style="color:#111">fn</span><span style="color:#111">,</span> <span style="color:#111">arg</span><span style="color:#111">);</span>
+<span style="color:#111">}</span>
+
+<span style="color:#00a8c8">int</span> <span style="color:#75af00">main</span><span style="color:#111">()</span>
+<span style="color:#111">{</span>
+    <span style="color:#00a8c8">int</span> <span style="color:#111">b</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">19</span><span style="color:#111">;</span>
+
+    <span style="color:#111">do_stuff_w_decay</span><span style="color:#111">(</span><span style="color:#111">add_things</span><span style="color:#111">,</span> <span style="color:#111">b</span><span style="color:#111">);</span>
+    <span style="color:#111">do_stuff_wo_decay</span><span style="color:#111">(</span><span style="color:#111">add_things</span><span style="color:#111">,</span> <span style="color:#111">b</span><span style="color:#111">);</span>
+
+    <span style="color:#00a8c8">return</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+
+</code></pre></div><p>Figure 1 shows a tuple named <code>foo</code> created with &ldquo;as is&rdquo; types for <code>_Fn</code> and <code>_Arg</code>. The function ends up as a function pointer, and the arg is <code>int&amp;</code> so nothing new or exciting.</p>
+<p><img src="/images/threads_tuple_wo_decay_2.png" alt="figure1">
+<em>figure 1</em></p>
+<p>Figure 2 shows the tuple <code>foo</code> created with type decay for <code>_Fn</code>. The function is still a function pointer, but take note that the arg is now just <code>int</code>, we have lost our reference.</p>
+<p><img src="/images/threads_tuple_w_decay_2.png" alt="figure2">
+<em>figure 2</em></p>
+<p>Just to further satiate my curiousity around std::decay, I took a look at the implementation, shown in <em>sample 4</em>. It is just using std::remove_reference on the type.</p>
+<p><a href="https://en.cppreference.com/w/cpp/types/remove_reference">std::remove_reference</a></p>
+<blockquote>
+<p>If the type is a reference type, provides the member typedef type which is the type <em>referred to</em> by T. Otherwise type is T.</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Sample 4
+</span><span style="color:#75715e"></span><span style="color:#00a8c8">template</span> <span style="color:#f92672">&lt;</span><span style="color:#00a8c8">class</span> <span style="color:#75af00">_Ty</span><span style="color:#f92672">&gt;</span>
+<span style="color:#00a8c8">struct</span> <span style="color:#75af00">decay</span>
+<span style="color:#111">{</span>
+	<span style="color:#75715e">// determines decayed version of _Ty
+</span><span style="color:#75715e"></span>	
+	<span style="color:#00a8c8">using</span> <span style="color:#111">_Ty1</span> <span style="color:#f92672">=</span> <span style="color:#111">remove_reference_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Ty</span><span style="color:#f92672">&gt;</span><span style="color:#111">;</span>
+	
+	<span style="color:#75715e">// snip...
+</span><span style="color:#75715e"></span><span style="color:#111">};</span>
+</code></pre></div><h4 id="stdmake_uniquehttpsdocsmicrosoftcomen-uscppstandard-librarymemory-functionsviewmsvc-160make_unique"><a href="https://docs.microsoft.com/en-us/cpp/standard-library/memory-functions?view=msvc-160#make_unique">std::make_unique</a></h4>
+<blockquote>
+<p>Creates and returns a unique_ptr to an object of the specified type, which is constructed by using the specified arguments.</p>
+</blockquote>
+<p>Coninuing to experiment, I setup <em>example 11</em> which immitates line 1 and 2 in <em>sample 2</em>.</p>
+<p><em>Note: I am intentionally not discussing std::forward because that&rsquo;s a different topic.</em></p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 11
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;memory&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;utility&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;tuple&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;iostream&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">void</span> <span style="color:#75af00">add_things</span><span style="color:#111">(</span><span style="color:#00a8c8">int</span> <span style="color:#f92672">&amp;</span><span style="color:#111">a</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+    <span style="color:#75715e">// do stuff
+</span><span style="color:#75715e"></span><span style="color:#111">}</span>
+
+<span style="color:#00a8c8">template</span> <span style="color:#f92672">&lt;</span><span style="color:#00a8c8">class</span> <span style="color:#75af00">_Ty</span><span style="color:#f92672">&gt;</span>
+<span style="color:#00a8c8">using</span> <span style="color:#111">decay_t</span> <span style="color:#f92672">=</span> <span style="color:#00a8c8">typename</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">decay</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Ty</span><span style="color:#f92672">&gt;::</span><span style="color:#111">type</span><span style="color:#111">;</span>
+
+<span style="color:#00a8c8">template</span><span style="color:#f92672">&lt;</span><span style="color:#00a8c8">typename</span> <span style="color:#111">_Fn</span><span style="color:#111">,</span> <span style="color:#00a8c8">typename</span> <span style="color:#111">_Arg</span><span style="color:#f92672">&gt;</span>
+<span style="color:#00a8c8">void</span> <span style="color:#111">do_stuff</span><span style="color:#111">(</span><span style="color:#111">_Fn</span> <span style="color:#f92672">&amp;&amp;</span><span style="color:#111">fn</span><span style="color:#111">,</span> <span style="color:#111">_Arg</span> <span style="color:#f92672">&amp;&amp;</span><span style="color:#111">arg</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+    <span style="color:#00a8c8">using</span> <span style="color:#111">_Tuple</span> <span style="color:#f92672">=</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">tuple</span><span style="color:#f92672">&lt;</span><span style="color:#111">decay_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">,</span> <span style="color:#111">decay_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Arg</span><span style="color:#f92672">&gt;&gt;</span><span style="color:#111">;</span>
+
+    <span style="color:#00a8c8">auto</span> <span style="color:#111">thing</span> <span style="color:#f92672">=</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">make_unique</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Tuple</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">fn</span><span style="color:#111">),</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Arg</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">arg</span><span style="color:#111">));</span>
+<span style="color:#111">}</span>
+
+<span style="color:#00a8c8">int</span> <span style="color:#75af00">main</span><span style="color:#111">()</span>
+<span style="color:#111">{</span>
+    <span style="color:#00a8c8">int</span> <span style="color:#111">b</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">19</span><span style="color:#111">;</span>
+
+    <span style="color:#111">do_stuff</span><span style="color:#111">(</span><span style="color:#111">add_things</span><span style="color:#111">,</span> <span style="color:#111">b</span><span style="color:#111">);</span>
+
+    <span style="color:#00a8c8">return</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+</code></pre></div><p>The type of <code>thing</code> is shown in <em>figure 3</em>. As expected, we have a pointer to a newly constructed instance of our tuple, consisting of the type decay of the arguments <code>fn</code> and <code>arg</code> .</p>
+<p><img src="/images/threads_make_unique_tuple.png" alt="figure3">
+<em>figure 3</em>.</p>
+<h4 id="stdbindhttpsdocsmicrosoftcomen-uscppstandard-libraryfunctional-functionsviewmsvc-160bind"><a href="https://docs.microsoft.com/en-us/cpp/standard-library/functional-functions?view=msvc-160#bind">std::bind</a></h4>
+<blockquote>
+<p>Binds arguments to a callable object</p>
+</blockquote>
+<p>The book mentioned bind or &ldquo;similar mechanism&rdquo;.</p>
+<p>For the curious, the Microsoft implementation of std::bind can be seen <a href="https://github.com/microsoft/STL/blob/main/stl/inc/functional#:~:text=using%20_Seq%20%20%20%20%3D%20index_sequence_for,_First%2C%20_Second%3E%20_Mypair%3B">here</a> and it is indeed similar to what we have just seen in std::thread, making use of std::decay and std::tuple.</p>
+<h2 id="conclusion-and-trivia">Conclusion and Trivia</h2>
+<p>Coming back to the original questions, why doesn&rsquo;t this code print out 1?</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 12
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">void</span> <span style="color:#75af00">func</span><span style="color:#111">(</span><span style="color:#00a8c8">int</span> <span style="color:#f92672">&amp;</span><span style="color:#111">a</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+	<span style="color:#111">a</span><span style="color:#f92672">++</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+
+<span style="color:#00a8c8">int</span> <span style="color:#75af00">main</span><span style="color:#111">()</span>
+<span style="color:#111">{</span>
+	<span style="color:#00a8c8">int</span> <span style="color:#111">a</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
+	<span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#00a8c8">thread</span> <span style="color:#111">t</span><span style="color:#111">(</span><span style="color:#111">func</span><span style="color:#111">,</span> <span style="color:#111">a</span><span style="color:#111">);</span>
+	
+	<span style="color:#111">t</span><span style="color:#111">.</span><span style="color:#111">join</span><span style="color:#111">();</span>
+	
+	<span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">cout</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">a</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">endl</span><span style="color:#111">;</span>
+	
+	
+	<span style="color:#00a8c8">return</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+</code></pre></div><p>Looking at <em>example 12</em>, now we understand that <code>a</code> is an lvalue reference that gets decayed to an rvalue. The implementation ends up with a local copy of <code>a</code> through <code>make_unique</code>, and we can then infer that a reference to that local copy is what gets passed to <code>func</code> (the exact mechanism of how <code>func</code> goes on to be invoked is a whole other thing).</p>
+<h3 id="stdreference_wrapper">std::reference_wrapper</h3>
+<p>Is there a way we can make the type decay of <code>a</code> still be an lvalue reference instead of an rvalue? Yes indeed, that is called a <a href="https://en.cppreference.com/w/cpp/utility/functional/reference_wrapper">std::reference_wrapper</a>.</p>
+<blockquote>
+<p>std::reference_wrapper is a class template that wraps a reference in a copyable, assignable object&hellip;.</p>
+</blockquote>
+<p>Cool, so what does std::decay (i.e std::remove_reference) do to a std::reference_wrapper?</p>
+<p>I tested this by setting up <em>example 13</em>, and what seems to happen is that std::reference_wrapper is passed through. Examining the types of <code>what_type</code> and <code>another_type</code> I found that the type of <code>what_type</code> is <code>std::reference_wrapper&lt;int&gt;</code> while the type of <code>another_type</code> is <code>int</code> (expected).</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 13
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">int</span> <span style="color:#75af00">main</span><span style="color:#111">()</span>
+<span style="color:#111">{</span>
+    <span style="color:#00a8c8">int</span> <span style="color:#111">a</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span><span style="color:#111">;</span>
+    <span style="color:#00a8c8">int</span> <span style="color:#f92672">*</span><span style="color:#111">b</span> <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span><span style="color:#111">a</span><span style="color:#111">;</span>
+    <span style="color:#00a8c8">auto</span> <span style="color:#111">x</span> <span style="color:#f92672">=</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">ref</span><span style="color:#111">(</span><span style="color:#111">a</span><span style="color:#111">);</span>
+
+    <span style="color:#00a8c8">using</span> <span style="color:#111">C</span> <span style="color:#f92672">=</span> <span style="color:#00a8c8">typename</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">remove_reference</span><span style="color:#f92672">&lt;</span><span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">reference_wrapper</span><span style="color:#f92672">&lt;</span><span style="color:#00a8c8">int</span><span style="color:#f92672">&gt;&gt;::</span><span style="color:#111">type</span><span style="color:#111">;</span>
+    <span style="color:#00a8c8">using</span> <span style="color:#111">D</span> <span style="color:#f92672">=</span> <span style="color:#00a8c8">typename</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">remove_reference</span><span style="color:#f92672">&lt;</span><span style="color:#00a8c8">int</span> <span style="color:#f92672">&amp;&gt;::</span><span style="color:#111">type</span><span style="color:#111">;</span>
+
+    <span style="color:#00a8c8">auto</span> <span style="color:#111">what_type</span> <span style="color:#f92672">=</span> <span style="color:#111">(</span><span style="color:#111">C</span><span style="color:#111">)</span><span style="color:#111">x</span><span style="color:#111">;</span>
+    <span style="color:#00a8c8">auto</span> <span style="color:#111">another_type</span> <span style="color:#f92672">=</span> <span style="color:#111">(</span><span style="color:#111">D</span><span style="color:#111">)</span><span style="color:#111">b</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+</code></pre></div><p>There are some implementation details there that I don&rsquo;t know about yet, but long story short, std::reference_wrapper allows your lvalue reference to make it through decay/remove_reference without turning into an rvalue.</p>
+<p>Now to answer &ldquo;&hellip; why does <code>std::ref</code> stop a local copy from being used?&rdquo;</p>
+<p><code>std::ref(a)</code> returns a std::reference_wrapper for <code>a</code>. Thus if we modify <em>example 13</em> as shown in <em>example 14</em>, we now get the expected result of 1.</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 14
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">void</span> <span style="color:#75af00">func</span><span style="color:#111">(</span><span style="color:#00a8c8">int</span> <span style="color:#f92672">&amp;</span><span style="color:#111">a</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+	<span style="color:#111">a</span><span style="color:#f92672">++</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+
+<span style="color:#00a8c8">int</span> <span style="color:#75af00">main</span><span style="color:#111">()</span>
+<span style="color:#111">{</span>
+	<span style="color:#00a8c8">int</span> <span style="color:#111">a</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
+	<span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#00a8c8">thread</span> <span style="color:#111">t</span><span style="color:#111">(</span><span style="color:#111">func</span><span style="color:#111">,</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">ref</span><span style="color:#111">(</span><span style="color:#111">a</span><span style="color:#111">));</span>
+	
+	<span style="color:#111">t</span><span style="color:#111">.</span><span style="color:#111">join</span><span style="color:#111">();</span>
+	
+	<span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">cout</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">a</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">endl</span><span style="color:#111">;</span>
+	
+	<span style="color:#00a8c8">return</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+</code></pre></div><h3 id="one-last-experiment">One Last Experiment</h3>
+<p>To see if I followed all of that and if I could implement something similar-ish to the std::thread constructor, I made <em>example 15</em>. The expected result is 4, and indeed that is what gets printed out. But if we drop the std::ref, 1 is printed.</p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Example 15
+</span><span style="color:#75715e"></span>
+<span style="color:#00a8c8">void</span> <span style="color:#75af00">add_a_b</span><span style="color:#111">(</span><span style="color:#00a8c8">int</span> <span style="color:#f92672">&amp;</span><span style="color:#111">a</span><span style="color:#111">,</span> <span style="color:#00a8c8">int</span> <span style="color:#f92672">&amp;</span><span style="color:#111">b</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+    <span style="color:#111">a</span> <span style="color:#f92672">+=</span> <span style="color:#111">b</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+
+<span style="color:#00a8c8">template</span><span style="color:#f92672">&lt;</span><span style="color:#00a8c8">typename</span> <span style="color:#111">_Fn</span><span style="color:#111">,</span> <span style="color:#00a8c8">typename</span> <span style="color:#111">A</span><span style="color:#f92672">&gt;</span>
+<span style="color:#00a8c8">void</span> <span style="color:#111">do_things</span><span style="color:#111">(</span><span style="color:#111">_Fn</span><span style="color:#f92672">&amp;&amp;</span> <span style="color:#111">_Fx</span><span style="color:#111">,</span> <span style="color:#111">A</span><span style="color:#f92672">&amp;&amp;</span> <span style="color:#111">a</span><span style="color:#111">,</span> <span style="color:#111">A</span><span style="color:#f92672">&amp;&amp;</span> <span style="color:#111">b</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+    <span style="color:#00a8c8">using</span> <span style="color:#111">_TT</span> <span style="color:#f92672">=</span> <span style="color:#00a8c8">typename</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">decay</span><span style="color:#f92672">&lt;</span><span style="color:#111">A</span><span style="color:#f92672">&gt;::</span><span style="color:#111">type</span><span style="color:#111">;</span>
+
+    <span style="color:#00a8c8">auto</span> <span style="color:#111">decay_a</span> <span style="color:#f92672">=</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">make_unique</span><span style="color:#f92672">&lt;</span><span style="color:#111">_TT</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">A</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">a</span><span style="color:#111">));</span>
+    <span style="color:#00a8c8">auto</span> <span style="color:#111">decay_b</span> <span style="color:#f92672">=</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">make_unique</span><span style="color:#f92672">&lt;</span><span style="color:#111">_TT</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">A</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">b</span><span style="color:#111">));</span>
+
+    <span style="color:#111">_Fx</span><span style="color:#111">(</span><span style="color:#f92672">*</span><span style="color:#111">decay_a</span><span style="color:#111">,</span> <span style="color:#f92672">*</span><span style="color:#111">decay_b</span><span style="color:#111">);</span>
+<span style="color:#111">}</span>
+
+<span style="color:#00a8c8">int</span> <span style="color:#75af00">main</span><span style="color:#111">()</span>
+<span style="color:#111">{</span>
+    <span style="color:#00a8c8">int</span> <span style="color:#111">a</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span><span style="color:#111">;</span>
+    <span style="color:#00a8c8">int</span> <span style="color:#111">b</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span><span style="color:#111">;</span>
+    <span style="color:#111">do_things</span><span style="color:#111">(</span><span style="color:#111">add_a_b</span><span style="color:#111">,</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">ref</span><span style="color:#111">(</span><span style="color:#111">a</span><span style="color:#111">),</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">ref</span><span style="color:#111">(</span><span style="color:#111">b</span><span style="color:#111">));</span>
+
+    <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">cout</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">a</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">endl</span><span style="color:#111">;</span>
+<span style="color:#111">}</span>
+
+</code></pre></div><h3 id="lambdas">Lambdas</h3>
+<p>Lambda functions are a <a href="https://en.cppreference.com/w/cpp/language/lambda">type of rvalue</a></p>
+<blockquote>
+<p>The lambda expression is a prvalue expression of unique unnamed non-union non-aggregate class type, known as closure type.</p>
+</blockquote>
+<p>So the &ldquo;special&rdquo; type-deducing context handling of <code>&amp;&amp;</code> is how the thread constructor can work with lambas.</p>
+<h3 id="but-where-does-the-thread-come-from">But Where Does The Thread Come From?</h3>
+<p>Threads are an operating system feature&hellip;So somwhere in all of this, a Win32 specific call was made.</p>
+<p>That call can be found <a href="https://github.com/microsoft/STL/blob/main/stl/inc/thread#:~:text=%23pragma%20warning(push),%23pragma%20warning(pop)">here</a>, and shown in <em>sample 5</em>.  Specifically, it is <a href="https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/beginthread-beginthreadex?view=msvc-160"><code>_beginthreadex</code></a></p>
+<div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++">    <span style="color:#111">_Thr</span><span style="color:#111">.</span><span style="color:#111">_Hnd</span> <span style="color:#f92672">=</span> <span style="color:#00a8c8">reinterpret_cast</span><span style="color:#f92672">&lt;</span><span style="color:#00a8c8">void</span><span style="color:#f92672">*&gt;</span><span style="color:#111">(</span><span style="color:#111">_CSTD</span> <span style="color:#111">_beginthreadex</span><span style="color:#111">(</span><span style="color:#00a8c8">nullptr</span><span style="color:#111">,</span> <span style="color:#ae81ff">0</span><span style="color:#111">,</span> <span style="color:#111">_Invoker_proc</span><span style="color:#111">,</span> <span style="color:#111">_Decay_copied</span><span style="color:#111">.</span><span style="color:#111">get</span><span style="color:#111">(),</span> <span style="color:#ae81ff">0</span><span style="color:#111">,</span> <span style="color:#f92672">&amp;</span><span style="color:#111">_Thr</span><span style="color:#111">.</span><span style="color:#111">_Id</span><span style="color:#111">));</span>
+</code></pre></div><p>Thanks for reading! Feel free to send questions, comments, concerns to me on <a href="https://twitter.com/9erdelta">Twitter</a></p>
+
+    <a href="/"> >> Home</a>
+  </main>
+</div>
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+    </footer>
+    
+  </body>
+</html>
+
