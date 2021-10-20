@@ -120,10 +120,9 @@
 <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#75715e">// Sample 1
 </span><span style="color:#75715e"></span>
 <span style="color:#00a8c8">template</span> <span style="color:#f92672">&lt;</span><span style="color:#00a8c8">class</span> <span style="color:#75af00">_Fn</span><span style="color:#111">,</span> <span style="color:#00a8c8">class</span><span style="color:#960050;background-color:#1e0010">... </span><span style="color:#75af00">_Args</span><span style="color:#111">,</span> <span style="color:#111">enable_if_t</span><span style="color:#f92672">&lt;!</span><span style="color:#111">is_same_v</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Remove_cvref_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">,</span> <span style="color:#00a8c8">thread</span><span style="color:#f92672">&gt;</span><span style="color:#111">,</span> <span style="color:#00a8c8">int</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">&gt;</span>
-
- <span style="color:#111">_NODISCARD_CTOR</span> <span style="color:#00a8c8">explicit</span> <span style="color:#00a8c8">thread</span><span style="color:#111">(</span><span style="color:#111">_Fn</span><span style="color:#f92672">&amp;&amp;</span> <span style="color:#111">_Fx</span><span style="color:#111">,</span> <span style="color:#111">_Args</span><span style="color:#f92672">&amp;&amp;</span><span style="color:#111">...</span> <span style="color:#111">_Ax</span><span style="color:#111">)</span>
+<span style="color:#111">_NODISCARD_CTOR</span> <span style="color:#00a8c8">explicit</span> <span style="color:#00a8c8">thread</span><span style="color:#111">(</span><span style="color:#111">_Fn</span><span style="color:#f92672">&amp;&amp;</span> <span style="color:#111">_Fx</span><span style="color:#111">,</span> <span style="color:#111">_Args</span><span style="color:#f92672">&amp;&amp;</span><span style="color:#111">...</span> <span style="color:#111">_Ax</span><span style="color:#111">)</span>
  <span style="color:#111">{</span>
- 	<span style="color:#111">_Start</span><span style="color:#111">(</span><span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Fx</span><span style="color:#111">),</span> <span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Args</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Ax</span><span style="color:#111">)...);</span>
+	<span style="color:#111">_Start</span><span style="color:#111">(</span><span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Fx</span><span style="color:#111">),</span> <span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Args</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Ax</span><span style="color:#111">)...);</span>
 	
 	<span style="color:#75715e">// snip...
 </span><span style="color:#75715e"></span> <span style="color:#111">}</span>
@@ -229,7 +228,6 @@
 	<span style="color:#75715e">// do stuff
 </span><span style="color:#75715e"></span><span style="color:#111">}</span>
 
-
 <span style="color:#00a8c8">int</span> <span style="color:#75af00">sum</span><span style="color:#111">(</span><span style="color:#00a8c8">int</span> <span style="color:#111">a</span><span style="color:#111">,</span> <span style="color:#00a8c8">int</span> <span style="color:#111">b</span><span style="color:#111">)</span>
 <span style="color:#111">{</span>
 	<span style="color:#00a8c8">return</span> <span style="color:#111">a</span> <span style="color:#f92672">+</span> <span style="color:#111">b</span><span style="color:#111">;</span>
@@ -265,21 +263,20 @@
 <p>The part of <code>_Start</code> that we&rsquo;re interested in is shown in <em>sample 2</em>.</p>
 <div class="highlight"><pre tabindex="0" style="color:#272822;background-color:#fafafa;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#75715e">// Sample 2
 </span><span style="color:#75715e"></span>
- <span style="color:#00a8c8">template</span> <span style="color:#f92672">&lt;</span><span style="color:#00a8c8">class</span> <span style="color:#75af00">_Fn</span><span style="color:#111">,</span> <span style="color:#00a8c8">class</span><span style="color:#960050;background-color:#1e0010">... </span><span style="color:#75af00">_Args</span><span style="color:#f92672">&gt;</span>
-
- <span style="color:#00a8c8">void</span> <span style="color:#111">_Start</span><span style="color:#111">(</span><span style="color:#111">_Fn</span><span style="color:#f92672">&amp;&amp;</span> <span style="color:#111">_Fx</span><span style="color:#111">,</span> <span style="color:#111">_Args</span><span style="color:#f92672">&amp;&amp;</span><span style="color:#111">...</span> <span style="color:#111">_Ax</span><span style="color:#111">)</span>
- <span style="color:#111">{</span>
-    <span style="color:#75715e">// line (1)
-</span><span style="color:#75715e"></span> 	<span style="color:#00a8c8">using</span> <span style="color:#111">_Tuple</span> <span style="color:#f92672">=</span> <span style="color:#111">tuple</span><span style="color:#f92672">&lt;</span><span style="color:#111">decay_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">,</span> <span style="color:#111">decay_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Args</span><span style="color:#f92672">&gt;</span><span style="color:#111">...</span><span style="color:#f92672">&gt;</span><span style="color:#111">;</span>
+<span style="color:#00a8c8">template</span> <span style="color:#f92672">&lt;</span><span style="color:#00a8c8">class</span> <span style="color:#75af00">_Fn</span><span style="color:#111">,</span> <span style="color:#00a8c8">class</span><span style="color:#960050;background-color:#1e0010">... </span><span style="color:#75af00">_Args</span><span style="color:#f92672">&gt;</span>
+<span style="color:#00a8c8">void</span> <span style="color:#111">_Start</span><span style="color:#111">(</span><span style="color:#111">_Fn</span><span style="color:#f92672">&amp;&amp;</span> <span style="color:#111">_Fx</span><span style="color:#111">,</span> <span style="color:#111">_Args</span><span style="color:#f92672">&amp;&amp;</span><span style="color:#111">...</span> <span style="color:#111">_Ax</span><span style="color:#111">)</span>
+<span style="color:#111">{</span>
+	<span style="color:#75715e">// line (1)
+</span><span style="color:#75715e"></span>	<span style="color:#00a8c8">using</span> <span style="color:#111">_Tuple</span> <span style="color:#f92672">=</span> <span style="color:#111">tuple</span><span style="color:#f92672">&lt;</span><span style="color:#111">decay_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">,</span> <span style="color:#111">decay_t</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Args</span><span style="color:#f92672">&gt;</span><span style="color:#111">...</span><span style="color:#f92672">&gt;</span><span style="color:#111">;</span>
 	
 	<span style="color:#75715e">// line (2)
-</span><span style="color:#75715e"></span> 	<span style="color:#00a8c8">auto</span> <span style="color:#111">_Decay_copied</span> <span style="color:#f92672">=</span> <span style="color:#111">_STD</span> <span style="color:#111">make_unique</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Tuple</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Fx</span><span style="color:#111">),</span>
+</span><span style="color:#75715e"></span>	<span style="color:#00a8c8">auto</span> <span style="color:#111">_Decay_copied</span> <span style="color:#f92672">=</span> <span style="color:#111">_STD</span> <span style="color:#111">make_unique</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Tuple</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Fx</span><span style="color:#111">),</span>
 	                                              <span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Args</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Ax</span><span style="color:#111">)...);</span>
 
 	<span style="color:#75715e">// line (3)
 </span><span style="color:#75715e"></span>	<span style="color:#00a8c8">constexpr</span> <span style="color:#00a8c8">auto</span> <span style="color:#111">_Invoker_proc</span> <span style="color:#f92672">=</span> 
 		<span style="color:#111">_Get_invoke</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Tuple</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">make_index_sequence</span><span style="color:#f92672">&lt;</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">+</span><span style="color:#00a8c8">sizeof</span><span style="color:#111">...(</span><span style="color:#111">_Args</span><span style="color:#111">)</span><span style="color:#f92672">&gt;</span><span style="color:#111">{});</span>
- 
+
 	<span style="color:#75715e">// snip ...
 </span><span style="color:#75715e"></span><span style="color:#111">}</span>
 </code></pre></div><p>There are 2 key pieces here to understand, std::decay and std::make_unique.</p>
@@ -489,7 +486,6 @@
 
     <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">cout</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">a</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">endl</span><span style="color:#111">;</span>
 <span style="color:#111">}</span>
-
 </code></pre></div><h3 id="lambdas">Lambdas</h3>
 <p>Lambda functions are a <a href="https://en.cppreference.com/w/cpp/language/lambda">type of rvalue</a></p>
 <blockquote>
