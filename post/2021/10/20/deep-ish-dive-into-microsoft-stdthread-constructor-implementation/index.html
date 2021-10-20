@@ -83,7 +83,6 @@
 	<span style="color:#111">a</span><span style="color:#f92672">++</span><span style="color:#111">;</span>
 <span style="color:#111">}</span>
 
-
 <span style="color:#00a8c8">int</span> <span style="color:#75af00">main</span><span style="color:#111">()</span>
 <span style="color:#111">{</span>
 	<span style="color:#00a8c8">int</span> <span style="color:#111">a</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
@@ -92,7 +91,6 @@
 	<span style="color:#111">t</span><span style="color:#111">.</span><span style="color:#111">join</span><span style="color:#111">();</span>
 	
 	<span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">cout</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">a</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">endl</span><span style="color:#111">;</span>
-	
 	
 	<span style="color:#00a8c8">return</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
 <span style="color:#111">}</span>
@@ -112,7 +110,6 @@
 	
 	<span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">cout</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">a</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">endl</span><span style="color:#111">;</span>
 	
-	
 	<span style="color:#00a8c8">return</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
 <span style="color:#111">}</span>
 </code></pre></div><p>Most explanations will just mention that you need to use <code>std::ref</code> because in <em>example 1</em> what is happening is that a reference to a local copy of <code>a</code> is what is being passed to <code>func</code> on the thread.</p>
@@ -127,7 +124,6 @@
  <span style="color:#111">_NODISCARD_CTOR</span> <span style="color:#00a8c8">explicit</span> <span style="color:#00a8c8">thread</span><span style="color:#111">(</span><span style="color:#111">_Fn</span><span style="color:#f92672">&amp;&amp;</span> <span style="color:#111">_Fx</span><span style="color:#111">,</span> <span style="color:#111">_Args</span><span style="color:#f92672">&amp;&amp;</span><span style="color:#111">...</span> <span style="color:#111">_Ax</span><span style="color:#111">)</span>
  <span style="color:#111">{</span>
  	<span style="color:#111">_Start</span><span style="color:#111">(</span><span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Fx</span><span style="color:#111">),</span> <span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Args</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Ax</span><span style="color:#111">)...);</span>
-	
 	
 	<span style="color:#75715e">// snip...
 </span><span style="color:#75715e"></span> <span style="color:#111">}</span>
@@ -279,7 +275,7 @@
 	<span style="color:#75715e">// line (2)
 </span><span style="color:#75715e"></span> 	<span style="color:#00a8c8">auto</span> <span style="color:#111">_Decay_copied</span> <span style="color:#f92672">=</span> <span style="color:#111">_STD</span> <span style="color:#111">make_unique</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Tuple</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Fn</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Fx</span><span style="color:#111">),</span>
 	                                              <span style="color:#111">_STD</span> <span style="color:#111">forward</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Args</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">_Ax</span><span style="color:#111">)...);</span>
-												  
+
 	<span style="color:#75715e">// line (3)
 </span><span style="color:#75715e"></span>	<span style="color:#00a8c8">constexpr</span> <span style="color:#00a8c8">auto</span> <span style="color:#111">_Invoker_proc</span> <span style="color:#f92672">=</span> 
 		<span style="color:#111">_Get_invoke</span><span style="color:#f92672">&lt;</span><span style="color:#111">_Tuple</span><span style="color:#f92672">&gt;</span><span style="color:#111">(</span><span style="color:#111">make_index_sequence</span><span style="color:#f92672">&lt;</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">+</span><span style="color:#00a8c8">sizeof</span><span style="color:#111">...(</span><span style="color:#111">_Args</span><span style="color:#111">)</span><span style="color:#f92672">&gt;</span><span style="color:#111">{});</span>
@@ -419,7 +415,6 @@
 	<span style="color:#111">t</span><span style="color:#111">.</span><span style="color:#111">join</span><span style="color:#111">();</span>
 	
 	<span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">cout</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">a</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#111">std</span><span style="color:#f92672">::</span><span style="color:#111">endl</span><span style="color:#111">;</span>
-	
 	
 	<span style="color:#00a8c8">return</span> <span style="color:#ae81ff">0</span><span style="color:#111">;</span>
 <span style="color:#111">}</span>
