@@ -240,6 +240,7 @@
 
 <span style="color:#75715e">// (3)
 </span><span style="color:#75715e"></span><span style="color:#00a8c8">int</span> <span style="color:#111">c</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span><span style="color:#111">;</span>
+<span style="color:#111">func</span><span style="color:#111">(</span><span style="color:#111">c</span><span style="color:#111">);</span>
 </code></pre></div><p>One other aspect of the template that we need to look at is the use of an ellpsis <code>...</code>, which indicates that this is a variadic template.</p>
 <p><a href="https://en.wiktionary.org/wiki/variadic">Variadic</a></p>
 <blockquote>
@@ -489,7 +490,7 @@
 <blockquote>
 <p>The lambda expression is a prvalue expression of unique unnamed non-union non-aggregate class type, known as closure type.</p>
 </blockquote>
-<p>So the &ldquo;special&rdquo; type-deducing context handling of <code>&amp;&amp;</code> is how the thread constructor can work with lambas.</p>
+<p>So the &ldquo;special&rdquo; type-deducing context handling of <code>&amp;&amp;</code> is how the thread constructor can work with lambas as well as functions and functors.</p>
 <h3 id="but-where-does-the-thread-come-from">But Where Does The Thread Come From?</h3>
 <p>Threads are an operating system feature&hellip;So somewhere in all of this, a Win32 specific call was made.</p>
 <p>That call can be found <a href="https://github.com/microsoft/STL/blob/main/stl/inc/thread#:~:text=%23pragma%20warning(push),%23pragma%20warning(pop)">here</a>, and shown below.  Specifically, it is <a href="https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/beginthread-beginthreadex?view=msvc-160"><code>_beginthreadex</code></a></p>
