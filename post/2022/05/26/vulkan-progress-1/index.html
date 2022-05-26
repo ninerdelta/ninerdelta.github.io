@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Getting off the ground with Vulkan">
+    <title>Vulkan Progress 1 | Home</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="https://www.ninerdelta.com/css/theme-override.css">
+    <header>
+
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.ninerdelta.com">~/home</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/categories/">~/categories</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/index.xml">~/rss</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Vulkan Progress 1</span></h1>
+
+<h2 class="date">2022/05/26</h2>
+<p class="terms">
+  
+  
+  Categories: <a href="/categories/dev-journal">Dev Journal</a> 
+  
+  
+  
+  Tags: <a href="/tags/graphics">Graphics</a> <a href="/tags/progresspics">ProgressPics</a> <a href="/tags/vulkan">Vulkan</a> 
+  
+  
+</p>
+</div>
+
+
+<div class="content-wrapper">
+  <main>
+    <h2 id="progress-pics">Progress Pics</h2>
+<p>I have managed to get triangle rendering in Dear ImGui.</p>
+<p><img src="/images/vulkan_progress_1.png" alt="figure1"></p>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://github.com/ocornut/imgui">ImGui Vulkan + SDL example</a></li>
+<li><a href="https://github.com/SaschaWillems/Vulkan">Sascha Willems Vulkan samples</a></li>
+<li><a href="https://www.amazon.com/Vulkan-Programming-Guide-Official-Learning/dp/0134464540">Vulkan Programming Guide</a></li>
+<li><a href="https://www.intel.com/content/www/us/en/developer/articles/training/api-without-secrets-introduction-to-vulkan-part-1.html">API Without Secrets</a></li>
+<li><a href="https://www.khronos.org/">Khronos</a></li>
+</ul>
+<h2 id="notes">Notes</h2>
+<p>I&rsquo;m going pretty slow and looking up pretty much every function and struct. It takes <em>a lot of code</em>, and there are a lot of concepts to build up a mental model for. Pipelines, render passes, attachments, queues etc. There&rsquo;s a lot.</p>
+<p>To get the triangle inside an ImGui window, I have to render the tri offscreen and submit it as an image. ImGui also needs a render pass. For now I have two renderpasses but maybe there is a way to do it (offscreen + ImGui) in one pass with multiple subpasses.</p>
+<p>One thing that is a bit wonky (well, not really but I had to learn it) is that ImGui rendering needs it&rsquo;s own command buffers because part of the multiview setup is that it will create a window, and that process destroys some buffers. So if for example I had already recorded some commands for my offscreen pass, the command buffers may get destroyed by the ImGui backend before my recorded commands are executed.</p>
+<p>To accomodate that, my offscreen pass has separate command buffers, command pool etc. But one thing I had to do with this setup is that I am calling VkSubmitQueue twice. I&rsquo;m not sure if that&rsquo;s a good idea, or if calling VkSubmitQueue multiple times is expected. Another that I am concered about is that I have no synchronization between my offscreen pass and my ImGui pass (other than they both submit to the same queue). Not sure what the ramifications of that is yet, I&rsquo;m sure I&rsquo;ll find out as get more features added in.</p>
+
+    <a href="/"> >> Home</a>
+  </main>
+</div>
+    <footer>
+      
+<script>
+(function() {
+  function center_el(tagName) {
+    var tags = document.getElementsByTagName(tagName), i, tag;
+    for (i = 0; i < tags.length; i++) {
+      tag = tags[i];
+      var parent = tag.parentElement;
+      
+      if (parent.childNodes.length === 1) {
+        
+        if (parent.nodeName === 'A') {
+          parent = parent.parentElement;
+          if (parent.childNodes.length != 1) continue;
+        }
+        if (parent.nodeName === 'P') parent.style.textAlign = 'center';
+      }
+    }
+  }
+  var tagNames = ['img', 'embed', 'object'];
+  for (var i = 0; i < tagNames.length; i++) {
+    center_el(tagNames[i]);
+  }
+})();
+</script>
+
+      
+    </footer>
+    
+  </body>
+</html>
+
